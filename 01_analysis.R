@@ -1,13 +1,17 @@
 ##### Explore Winter Flounder for GAMS to look at catchability #####
 ##### Start just plotting catch with each variable - both real catch and binary #####
+
+# Load packages
 library(ggplot2)
 library(mgcv)
-library(pracma)
-library(tidyr)
 library(PMCMR)
+library(pracma)
+library(readxl)
+library(tidyr)
 
-setwd("J:/jamestown/Staff/Rich/WinterFlounder/Database/Query_Outputs")
-fyke <- read.csv("1_tbl_FykeSets.csv", header=TRUE)
+# Import data
+fyke <- read_excel("data/raw-data/FykeSets.xlsx")
+
 ## Making Different Transformations for Analysis of Catch #s ###
 fyke$bincatch <- ifelse(fyke$WFL_Frequency == 0,0,1)
 fyke$freq_fourth <- (nthroot(fyke$WFL_Frequency, 4))
@@ -206,3 +210,4 @@ gam_soak_year_nb <- gam(WFL_Frequency~s(Soak_Time) + s(Set_Occ_Year), family="nb
 gam.check(gam_soak_year_nb)
 gam_soak_year_tw <- gam(WFL_Frequency~s(Soak_Time) + s(Set_Occ_Year), family="tw", data=fyke)
 gam.check(gam_soak_year_tw)
+
