@@ -64,6 +64,58 @@ fyke$set.occurrence_yr <- ifelse(fyke$set.occurrence_yr == 999, NA, fyke$set.occ
 
 ##### Water Quality Data #####
 
+## This section of code runs through the in-water data loggers placed
+## on the fyke nets to generate summary statistics. DO NOT
+## USE THE SALINITY VALUES AS SOME OF THE SENSORS ARE
+## NOT WORKING.
+
+# List of water quality data files
+wq_files <- list.files("data/raw-data/water-quality", full.names = TRUE)
+
+# Read in water quality data
+water <- lapply(wq_files, read_excel)
+
+# Add event ID to each water quality data frame
+water <- lapply(1:length(water), function(i) {
+  water[[i]]$event <- wq_files[i]
+  return(water[[i]])
+})
+
+# Combine all data into one dataframe
+water <- bind_rows(water)
+
+# Remove filepath from event ID
+water$event <- gsub("data/raw-data/water-quality/", "", water$event)
+
+# Remove file extension from event ID
+water$event <- gsub(".xlsx", "", water$event)
+
+# Change column names
+colnames(water) <- c("date.time", "temp_c", "depth_m", "salinity_psu",
+  "conductivity_mS.cm", "sound.velocity_m.s", "event")
+
+# Select desired columns
+water <- select(water, -salinity_psu, -conductivity_mS.cm, -sound.velocity_m.s)
+
+# Add columns to fyke data for summary statistics
+fyke$mean.water.temp_c <- NA #haul and set temps are normally distributed
+fyke$min.water.temp_c <- NA
+fyke$max.water.temp_c <- NA
+fyke$
+
+
+# Add summary statistics to fyke data
+for(i in 1:nrow(fyke)) {
+  
+  # Subset water quality data for the current fyke event
+  water_sub <- filter(water, event == fyke$event[i])
+  
+  
+  
+  
+}
+  
+
 
 
 ##### Summarize #####
