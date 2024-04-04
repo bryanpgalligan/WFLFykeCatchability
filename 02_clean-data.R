@@ -1,6 +1,13 @@
 ## This script is used to clean and explore data from the
 ## 1999-2024 fyke survey and the 2019-2024 water quality data.
 
+
+## TO DO:
+##    - Add columns for change in air temp, salinity, and DO
+##      to mirror the delta temp columns
+##    - Calculate lunar day (probably of haul)
+
+
 ## Load data
 
 # Load fyke survey data
@@ -35,6 +42,12 @@ colnames(fyke) <- c("event", "station", "pond", "set.date",
 
 # Remove superfluous columns
 fyke <- select(fyke, -WFL_Caught, -Comments)
+
+# Add a column for change in water temperature
+fyke$delta.temp_c <- fyke$haul.water.temp_c - fyke$set.water.temp_c
+
+# Add a column for change in water temperature per day
+fyke$delta.temp_c.day <- fyke$delta_temp_c / fyke$soak_days
 
 # Make a binary catch column wherein 1 = winter flounder caught and 0 = no winter flounder caught
 fyke$wfl_binary <- ifelse(fyke$wfl_freq == 0,0,1)
@@ -97,12 +110,21 @@ colnames(water) <- c("date.time", "temp_c", "depth_m", "salinity_psu",
 # Select desired columns
 water <- select(water, -salinity_psu, -conductivity_mS.cm, -sound.velocity_m.s)
 
+# Remove rows with missing temperature data
+water <- filter(water, !is.na(temp_c))
+
 # Add columns to fyke data for summary statistics
 fyke$mean.water.temp_c <- NA #haul and set temps are normally distributed
 fyke$min.water.temp_c <- NA
 fyke$max.water.temp_c <- NA
-fyke$
-
+fyke$range.water.temp_c <- NA
+fyke$skewness.water.temp <- NA
+fyke$kurtosis.water.temp <- NA
+fyke$bimodality.water.temp <- NA
+fyke$mean.depth_m <- NA
+fyke$min.depth_m <- NA
+fyke$max.depth_m <- NA
+fyke$range.depth_m <- NA
 
 # Add summary statistics to fyke data
 for(i in 1:nrow(fyke)) {
@@ -110,8 +132,25 @@ for(i in 1:nrow(fyke)) {
   # Subset water quality data for the current fyke event
   water_sub <- filter(water, event == fyke$event[i])
   
-  
-  
+  # Skip if no water quality data is available
+  if(nrow(water_sub) > 0) {
+    
+    # Calculate summary statistics for water temperature  
+    fyke$mean.water.temp_c[i] <- mean(water_sub$temp_c, na.rm = TRUE)
+    fyke$min.water.temp_c[i] <- min(water_sub$temp_c, na.rm = TRUE)
+    fyke$max.water.temp_c[i] <- max(water_sub$temp_c, na.rm = TRUE)
+    fyke$range.water.temp_c[i] <- fyke$max.water.temp_c[i] - fyke$min.water.temp_c[i]
+    fyke$skewness.water.temp[i] <- skewness(water_sub$temp_c, na.rm = TRUE)
+    fyke$kurtosis.water.temp[i] <- kurtosis(water_sub$temp_c, na.rm = TRUE)
+    fyke$bimodality.water.temp[i] <- bimodality_coefficient(water_sub$temp_c, na.rm = TRUE)
+    
+    # Calculate summary statistics for depth
+    fyke$mean.depth_m[i] <- mean(water_sub$depth_m, na.rm = TRUE)
+    fyke$min.depth_m[i] <- min(water_sub$depth_m, na.rm = TRUE)
+    fyke$max.depth_m[i] <- max(water_sub$depth_m, na.rm = TRUE)
+    fyke$range.depth_m[i] <- fyke$max.depth_m[i] - fyke$min.depth_m[i]
+    
+  }
   
 }
   
@@ -121,7 +160,8 @@ for(i in 1:nrow(fyke)) {
 ##### Summarize #####
 
 # Summary of fyke data
-gt_plt_summary(fyke[6:21])
+gt_plt_summary(fyke[6:34])
+
 
 
 
