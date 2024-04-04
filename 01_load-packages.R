@@ -12,6 +12,7 @@
 library(dplyr)
 library(gtExtras)
 library(lubridate)
+library(mousetrap)
 library(moments)
 library(readxl)
 library(svglite)
