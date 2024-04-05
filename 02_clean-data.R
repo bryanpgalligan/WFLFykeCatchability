@@ -59,12 +59,6 @@ fyke$delta.water.temp_c <- fyke$haul.water.temp_c - fyke$set.water.temp_c
 # Add a column for change in water temperature per day
 fyke$delta.water.temp_c.day <- fyke$delta.water.temp_c / fyke$soak_days
 
-# Add a column for change in air temperature
-fyke$delta.air.temp_c <- fyke$haul.air.temp_c - fyke$set.air.temp_c
-
-# Add a column for change in air temperature per day
-fyke$delta.air.temp_c.day <- fyke$delta.air.temp_c / fyke$soak_days
-
 # Add a column for change in salinity
 fyke$delta.salinity_ppt <- fyke$haul.salinity_ppt - fyke$set.salinity_ppt
 
@@ -341,10 +335,19 @@ for (i in 1:nrow(fyke)){
   
 }
 
-
 # Calculate NOOA temperature range
 fyke$noaa.temp.range_c <- fyke$noaa.max.temp_c - fyke$noaa.min.temp_c
 
+# Replace all NaN with NA
+fyke <- mutate_if(fyke, is.numeric, function(x) ifelse(is.nan(x), NA, x))
+
 # Summary of combined data
 gt_plt_summary(fyke[6:ncol(fyke)], "Combined Data Summary")
+
+# Save cleaned data
+write_csv(fyke, "data/clean-data/02_FykeSets_Complete.csv")
+write_csv(weather, "data/clean-data/02_NOAAWeather.csv")
+
+
+
 
