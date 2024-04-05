@@ -3,9 +3,7 @@
 
 
 ## TO DO:
-##    - Add columns for change in air temp, salinity, and DO
-##      to mirror the delta temp columns
-##    - Calculate lunar day (probably of haul)
+##    - Add degree heating days
 
 
 ## Load data
@@ -43,11 +41,37 @@ colnames(fyke) <- c("event", "station", "pond", "set.date",
 # Remove superfluous columns
 fyke <- select(fyke, -WFL_Caught, -Comments)
 
+# Convert set air temp from F to C
+fyke$set.air.temp_c <- (fyke$set.air.temp_c - 32) * 5/9
+fyke$set.air.temp_c <- round2(fyke$set.air.temp_c, 2)
+
+# Convert haul air temp from F to C
+fyke$haul.air.temp_c <- (fyke$haul.air.temp_c - 32) * 5/9
+fyke$haul.air.temp_c <- round2(fyke$haul.air.temp_c, 2)
+
 # Add a column for change in water temperature
 fyke$delta.temp_c <- fyke$haul.water.temp_c - fyke$set.water.temp_c
 
 # Add a column for change in water temperature per day
-fyke$delta.temp_c.day <- fyke$delta_temp_c / fyke$soak_days
+fyke$delta.temp_c.day <- fyke$delta.temp_c / fyke$soak_days
+
+# Add a column for change in air temperature
+fyke$delta.air.temp_c <- fyke$haul.air.temp_c - fyke$set.air.temp_c
+
+# Add a column for change in air temperature per day
+fyke$delta.air.temp_c.day <- fyke$delta.air.temp_c / fyke$soak_days
+
+# Add a column for change in salinity
+fyke$delta.salinity_ppt <- fyke$haul.salinity_ppt - fyke$set.salinity_ppt
+
+# Add a column for change in salinity per day
+fyke$delta.salinity_ppt.day <- fyke$delta.salinity_ppt / fyke$soak_days
+
+# Add a column for change in dissolved oxygen
+fyke$delta.do_mg.l <- fyke$haul.do_mg.l - fyke$set.do_mg.l
+
+# Add a column for change in dissolved oxygen per day
+fyke$delta.do_mg.l.day <- fyke$delta.do_mg.l / fyke$soak_days
 
 # Make a binary catch column wherein 1 = winter flounder caught and 0 = no winter flounder caught
 fyke$wfl_binary <- ifelse(fyke$wfl_freq == 0,0,1)
@@ -61,13 +85,32 @@ fyke$haul.date_jul <- as.numeric(format(fyke$haul.date, "%j"))
 fyke$haul.date_jul <- ifelse(fyke$haul.date_jul < 200,
   fyke$haul.date_jul + 61, fyke$haul.date_jul - 304)
 
-# Convert set air temp from F to C
-fyke$set.air.temp_c <- (fyke$set.air.temp_c - 32) * 5/9
-fyke$set.air.temp_c <- round2(fyke$set.air.temp_c, 2)
+# Calculate mean lunar illumination over soak period
+fyke$haul.date <- as.Date(fyke$haul.date)
+for (i in 1:nrow(fyke)){
+  
+  # If the soak period is missing (28 of 1039 observations or 2.7%)
+  if (is.na(fyke$soak_days[i])){
+    
+    # Calculate lunar illumination for the haul date
+    fyke$lunar.illumination[i] <- lunar.illumination(fyke$haul.date[i], shift = -4)
+    
+  } else {
+    
+    # Calculate mean lunar illumination over the soak period
+    fyke$lunar.illumination[i] <- lunar.illumination.mean(fyke$haul.date[i], towards = (-1 * fyke$soak_days[i]), shift = -4)
+    
+  }
+  
+}
 
-# Convert haul air temp from F to C
-fyke$haul.air.temp_c <- (fyke$haul.air.temp_c - 32) * 5/9
-fyke$haul.air.temp_c <- round2(fyke$haul.air.temp_c, 2)
+
+
+
+
+
+
+
 
 # Change 999 to NA in set occurrence per year
 fyke$set.occurrence_yr <- ifelse(fyke$set.occurrence_yr == 999, NA, fyke$set.occurrence_yr)
@@ -160,7 +203,7 @@ for(i in 1:nrow(fyke)) {
 ##### Summarize #####
 
 # Summary of fyke data
-gt_plt_summary(fyke[6:34])
+gt_plt_summary(fyke[6:ncol(fyke)])
 
 
 
