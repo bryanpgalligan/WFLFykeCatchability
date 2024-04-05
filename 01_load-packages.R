@@ -5,11 +5,11 @@
 
 ## Load packages
 
-# library(ggplot2)
 # library(mgcv)
 # library(PMCMR)
 # library(pracma)
 library(dplyr)
+library(ggplot2)
 library(gtExtras)
 library(lubridate)
 library(lunar)
