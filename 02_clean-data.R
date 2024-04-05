@@ -3,15 +3,7 @@
 
 
 ## TO DO:
-##    - Add degree heating days
-
-
-## Load data
-
-# Load fyke survey data
-fyke <- read_excel("data/raw-data/FykeSets.xlsx")
-
-# Load water quality data
+##    - Update with complete fyke and weather data at end of 2024 season
 
 
 ## Functions
@@ -30,6 +22,9 @@ round2 <- function(x, digits = 0) {  # Function to always round 0.5 up
 
 
 ##### Fyke Data #####
+
+# Load fyke survey data
+fyke <- read_excel("data/raw-data/FykeSets.xlsx")
 
 # Change column names
 colnames(fyke) <- c("event", "station", "pond", "set.date",
@@ -114,6 +109,42 @@ for (i in 1:nrow(fyke)){
 
 # Change 999 to NA in set occurrence per year
 fyke$set.occurrence_yr <- ifelse(fyke$set.occurrence_yr == 999, NA, fyke$set.occurrence_yr)
+
+
+
+
+##### Weather Data #####
+
+## Import and analyze NOAA weather data from:
+##  NOAA National Centers for Environmental Information (NCEI) Climate Data Online
+##  https://www.ncei.noaa.gov/cdo-web/datasets
+
+## The weather stations are Ninigret (1997-02-27 through 2024-02-06) and
+## Westerly State Airport (1999-07-27 through 2024-04-01).
+
+# Load weather data
+weather <- read.csv("data/raw-data/DailyWeather.csv")
+
+# Change column names
+colnames(weather) <- c("code", "station", "latitude", "longitude", "elevation_m",
+  "date", "wind_m.s", "precip_mm", "avg.temp_c", "max.temp_c", "min.temp_c", "gusts_m.s")
+
+# Select desired columns
+weather <- select(weather, -code, -latitude, -longitude, -elevation_m, -gusts_m.s)
+
+# Rename stations
+for (i in 1:nrow(weather)){
+  weather$station[i] <- str_split_1(weather$station[i], " ")[1]
+}
+
+# Make stations lower case
+weather$station <- tolower(weather$station)
+
+# Summarize weather data
+gt_plt_summary(weather[2:ncol(weather)])
+
+# Pivot wider by date
+weather <- pivot_wider(weather, names_from = station, values_from = c(wind_m.s, precip_mm, avg.temp_c, max.temp_c, min.temp_c))
 
 
 
