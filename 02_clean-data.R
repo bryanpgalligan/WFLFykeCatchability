@@ -283,6 +283,7 @@ gt_plt_summary(fyke[6:ncol(fyke)], "Fyke Sets Summary")
 fyke$noaa.avg.air.temp_c <- NA
 fyke$noaa.max.temp_c <- NA
 fyke$noaa.min.temp_c <- NA
+fyke$noaa.avg.high_c <- NA
 fyke$noaa.temp.range_c <- NA
 fyke$noaa.precip_mm.day <- NA
 fyke$noaa.wind_m.s <- NA
@@ -316,6 +317,7 @@ for (i in 1:nrow(fyke)){
     fyke$noaa.avg.air.temp_c[i] <- mean(weather_sub$avg.temp_c, na.rm = TRUE)
     fyke$noaa.max.temp_c[i] <- max(weather_sub$max.temp_c, na.rm = TRUE)
     fyke$noaa.min.temp_c[i] <- min(weather_sub$min.temp_c, na.rm = TRUE)
+    fyke$noaa.avg.high_c[i] <- mean(weather_sub$max.temp_c, na.rm = TRUE)
     fyke$noaa.heating.degrees_day[i] <- mean(weather_sub$heating.degrees_day, na.rm = TRUE)
     
     # Skip if any wind data are missing
