@@ -45,6 +45,12 @@ fyke$set.air.temp_c <- round2(fyke$set.air.temp_c, 2)
 fyke$haul.air.temp_c <- (fyke$haul.air.temp_c - 32) * 5/9
 fyke$haul.air.temp_c <- round2(fyke$haul.air.temp_c, 2)
 
+# Add haul/set averages
+fyke$hs.avg.air.temp_c <- (fyke$haul.air.temp_c + fyke$set.air.temp_c) / 2
+fyke$hs.avg.water.temp_c <- (fyke$haul.water.temp_c + fyke$set.water.temp_c) / 2
+fyke$hs.avg.salinity_ppt <- (fyke$haul.salinity_ppt + fyke$set.salinity_ppt) / 2
+fyke$hs.avg.do_mg.l <- (fyke$haul.do_mg.l + fyke$set.do_mg.l) / 2
+
 # Add a column for change in water temperature
 fyke$delta.temp_c <- fyke$haul.water.temp_c - fyke$set.water.temp_c
 
