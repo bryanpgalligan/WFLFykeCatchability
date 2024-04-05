@@ -342,7 +342,10 @@ fyke$noaa.temp.range_c <- fyke$noaa.max.temp_c - fyke$noaa.min.temp_c
 fyke <- mutate_if(fyke, is.numeric, function(x) ifelse(is.nan(x), NA, x))
 
 # Summary of combined data
-gt_plt_summary(fyke[6:ncol(fyke)], "Combined Data Summary")
+fyke.summary <- gt_plt_summary(fyke[6:ncol(fyke)], "Combined Data Summary")
+
+# Save summary
+gtsave(fyke.summary, "documents/02_FykeSummary.png")
 
 # Save cleaned data
 write_csv(fyke, "data/clean-data/02_FykeSets_Complete.csv")
