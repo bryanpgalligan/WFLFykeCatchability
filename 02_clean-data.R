@@ -3,7 +3,9 @@
 
 
 ## TO DO:
-##    - Combine fyke and weather data
+##    - Decide which variables to drop from combined fyke and weather
+##      data (while still being maximalist in what you report for
+##      transparency)
 ##    - Update with complete fyke and weather data at end of 2024 season
 
 
@@ -52,10 +54,10 @@ fyke$hs.avg.salinity_ppt <- (fyke$haul.salinity_ppt + fyke$set.salinity_ppt) / 2
 fyke$hs.avg.do_mg.l <- (fyke$haul.do_mg.l + fyke$set.do_mg.l) / 2
 
 # Add a column for change in water temperature
-fyke$delta.temp_c <- fyke$haul.water.temp_c - fyke$set.water.temp_c
+fyke$delta.water.temp_c <- fyke$haul.water.temp_c - fyke$set.water.temp_c
 
 # Add a column for change in water temperature per day
-fyke$delta.temp_c.day <- fyke$delta.temp_c / fyke$soak_days
+fyke$delta.water.temp_c.day <- fyke$delta.water.temp_c / fyke$soak_days
 
 # Add a column for change in air temperature
 fyke$delta.air.temp_c <- fyke$haul.air.temp_c - fyke$set.air.temp_c
@@ -286,9 +288,63 @@ gt_plt_summary(fyke[6:ncol(fyke)], "Fyke Sets Summary")
 
 ##### Combine Data #####
 
+# Add empty columns to fyke data
+fyke$noaa.avg.air.temp_c <- NA
+fyke$noaa.max.temp_c <- NA
+fyke$noaa.min.temp_c <- NA
+fyke$noaa.temp.range_c <- NA
+fyke$noaa.precip_mm.day <- NA
+fyke$noaa.wind_m.s <- NA
+fyke$noaa.heating.degrees_day <- NA
+
+# Convert all date columns to date objects
+fyke$set.date <- as.Date(fyke$set.date, format = "%d-%m-%y")
+fyke$haul.date <- as.Date(fyke$haul.date, format = "%d-%m-%y")
+weather$date <- as.Date(weather$date)
+
+# Combine fyke and weather data
+for (i in 1:nrow(fyke)){
+  
+  # Subset weather data for current fyke event
+  if(!is.na(fyke$set.date[i])){
+    
+    # Using observed haul and set dates
+    weather_sub <- filter(weather, date >= fyke$set.date[i] & date <= fyke$haul.date[i])
+
+    } else {
+    
+    # Using the haul date and median soak period of 4 days
+    weather_sub <- filter(weather, date <= fyke$haul.date[i] & date >= fyke$haul.date[i] - 4)
+  
+  }
+  
+  # Skip if no weather data are available
+  if(nrow(weather_sub) > 0) {
+    
+    # Calculate summary statistics for weather data
+    fyke$noaa.avg.air.temp_c[i] <- mean(weather_sub$avg.temp_c, na.rm = TRUE)
+    fyke$noaa.max.temp_c[i] <- max(weather_sub$max.temp_c, na.rm = TRUE)
+    fyke$noaa.min.temp_c[i] <- min(weather_sub$min.temp_c, na.rm = TRUE)
+    fyke$noaa.heating.degrees_day[i] <- mean(weather_sub$heating.degrees_day, na.rm = TRUE)
+    
+    # Skip if any wind data are missing
+    if(all(!is.na(weather_sub$wind_m.s))) {
+      fyke$noaa.wind_m.s[i] <- mean(weather_sub$wind_m.s)
+    }
+    
+    # Skip if any precip data are missing
+    if(all(!is.na(weather_sub$precip_mm))) {
+      fyke$noaa.precip_mm.day[i] <- mean(weather_sub$precip_mm)
+    }
+    
+  }
+  
+}
 
 
+# Calculate NOOA temperature range
+fyke$noaa.temp.range_c <- fyke$noaa.max.temp_c - fyke$noaa.min.temp_c
 
-
-
+# Summary of combined data
+gt_plt_summary(fyke[6:ncol(fyke)], "Combined Data Summary")
 
