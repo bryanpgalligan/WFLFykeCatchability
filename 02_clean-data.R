@@ -3,9 +3,6 @@
 
 
 ## TO DO:
-##    - Decide which variables to drop from combined fyke and weather
-##      data (while still being maximalist in what you report for
-##      transparency)
 ##    - Update with complete fyke and weather data at end of 2024 season
 
 
