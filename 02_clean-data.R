@@ -3,6 +3,7 @@
 
 
 ## TO DO:
+##    - Combine fyke and weather data
 ##    - Update with complete fyke and weather data at end of 2024 season
 
 
@@ -87,8 +88,8 @@ for (i in 1:nrow(fyke)){
   # If the soak period is missing (28 of 1039 observations or 2.7%)
   if (is.na(fyke$soak_days[i])){
     
-    # Calculate lunar illumination for the haul date
-    fyke$lunar.illumination[i] <- lunar.illumination(fyke$haul.date[i], shift = -4)
+    # Calculate lunar illumination over the median soak period (4 days)
+    fyke$lunar.illumination[i] <- lunar.illumination.mean(fyke$haul.date[i], towards = -4, shift = -4)
     
   } else {
     
@@ -98,14 +99,6 @@ for (i in 1:nrow(fyke)){
   }
   
 }
-
-
-
-
-
-
-
-
 
 # Change 999 to NA in set occurrence per year
 fyke$set.occurrence_yr <- ifelse(fyke$set.occurrence_yr == 999, NA, fyke$set.occurrence_yr)
@@ -140,11 +133,62 @@ for (i in 1:nrow(weather)){
 # Make stations lower case
 weather$station <- tolower(weather$station)
 
-# Summarize weather data
-gt_plt_summary(weather[2:ncol(weather)])
-
 # Pivot wider by date
 weather <- pivot_wider(weather, names_from = station, values_from = c(wind_m.s, precip_mm, avg.temp_c, max.temp_c, min.temp_c))
+
+# Delete empty columns
+weather <- select(weather, -wind_m.s_ninigret, -precip_mm_ninigret)
+
+# Create composite columns
+weather$avg.temp_c <- NA
+weather$precip_mm <- weather$precip_mm_westerly
+weather$wind_m.s <- weather$wind_m.s_westerly
+weather$max.temp_c <- NA
+weather$min.temp_c <- NA
+weather$temp.range_c <- NA
+weather$station <- NA
+
+# Fill composite columns using ninigret only where westerly is missing
+for (i in 1:nrow(weather)){
+  
+  # Average Temp
+  if (!is.na(weather$avg.temp_c_westerly[i])){
+    weather$avg.temp_c[i] <- weather$avg.temp_c_westerly[i]
+    weather$station[i] <- "westerly"
+  } else {
+    weather$avg.temp_c[i] <- weather$avg.temp_c_ninigret[i]
+    weather$station[i] <- "ninigret"
+  }
+  
+  # Max Temp
+  if (!is.na(weather$max.temp_c_westerly[i])){
+    weather$max.temp_c[i] <- weather$max.temp_c_westerly[i]
+  } else {
+    weather$max.temp_c[i] <- weather$max.temp_c_ninigret[i]
+  }
+  
+  # Min Temp
+  if (!is.na(weather$min.temp_c_westerly[i])){
+    weather$min.temp_c[i] <- weather$min.temp_c_westerly[i]
+  } else {
+    weather$min.temp_c[i] <- weather$min.temp_c_ninigret[i]
+  }
+  
+}
+
+# Add temperature range
+weather$temp.range_c <- weather$max.temp_c - weather$min.temp_c
+
+# Select desired columns
+weather <- select(weather, -wind_m.s_westerly, -precip_mm_westerly, -avg.temp_c_westerly,
+  -max.temp_c_westerly, -min.temp_c_westerly, -avg.temp_c_ninigret,
+  -max.temp_c_ninigret, -min.temp_c_ninigret)
+
+# Add heating degrees per day relative to 18 C
+weather$heating.degrees_day <- ifelse(weather$avg.temp_c < 18, 18 - weather$avg.temp_c, 0)
+
+# Summarize weather data
+gt_plt_summary(weather[2:ncol(weather)], "Weather Summary")
 
 
 
@@ -206,7 +250,7 @@ for(i in 1:nrow(fyke)) {
   # Subset water quality data for the current fyke event
   water_sub <- filter(water, event == fyke$event[i])
   
-  # Skip if no water quality data is available
+  # Skip if no water quality data are available
   if(nrow(water_sub) > 0) {
     
     # Calculate summary statistics for water temperature  
@@ -228,13 +272,13 @@ for(i in 1:nrow(fyke)) {
   
 }
   
-
-
-
-##### Summarize #####
-
 # Summary of fyke data
-gt_plt_summary(fyke[6:ncol(fyke)])
+gt_plt_summary(fyke[6:ncol(fyke)], "Fyke Sets Summary")
+
+
+
+
+##### Combine Data #####
 
 
 
