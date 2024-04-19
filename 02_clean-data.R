@@ -112,76 +112,141 @@ fyke$set.occurrence_yr <- ifelse(fyke$set.occurrence_yr == 999, NA, fyke$set.occ
 ##  https://www.ncei.noaa.gov/cdo-web/datasets
 
 ## The weather stations are Ninigret (1997-02-27 through 2024-02-06) and
-## Westerly State Airport (1999-07-27 through 2024-04-01).
+## Westerly State Airport (1999-07-27 through 2024-04-01). Dataset is daily summaries.
 
 # Load weather data
 weather <- read.csv("data/raw-data/DailyWeather.csv")
 
 # Change column names
 colnames(weather) <- c("code", "station", "latitude", "longitude", "elevation_m",
-  "date", "wind_m.s", "precip_mm", "avg.temp_c", "max.temp_c", "min.temp_c", "gusts_m.s")
+  "date", "avg.wind_m.s", "precip_mm", "avg.temp_c", "max.temp_c", "min.temp_c", "obs.temp_c")
 
-# Select desired columns
-weather <- select(weather, -code, -latitude, -longitude, -elevation_m, -gusts_m.s)
+##### WIP #####
 
-# Rename stations
-for (i in 1:nrow(weather)){
-  weather$station[i] <- str_split_1(weather$station[i], " ")[1]
-}
+# Extract weather stations
+stations <- weather %>% distinct(code, .keep_all = TRUE)
 
-# Make stations lower case
-weather$station <- tolower(weather$station)
+# Select only station level attributes
+stations <- select(stations, code, station, latitude, longitude, elevation_m)
 
-# Pivot wider by date
-weather <- pivot_wider(weather, names_from = station, values_from = c(wind_m.s, precip_mm, avg.temp_c, max.temp_c, min.temp_c))
+# Specify CRS as WGS84
+crs <- st_crs(4326)
 
-# Delete empty columns
-weather <- select(weather, -wind_m.s_ninigret, -precip_mm_ninigret)
+# Extract lat/lon of closest station (South Kingston 4.3 WSW, RI US)
+lat <- stations$latitude[stations$code == "US1RIWS0080"]
+lon <- stations$longitude[stations$code == "US1RIWS0080"]
+center <- st_sfc(st_point(c(lon, lat)), crs = crs)
+
+# Add a column for distance from closest station
+stations$distance <- st_distance(stations %>% st_as_sf(coords = c("longitude", "latitude"), crs = crs), center)
+
+# Make list of station ID's from closest to farthest
+station_priority <- stations$code[order(stations$distance)]
+
+# Delete unwanted columns
+weather <- select(weather, -station, -latitude, -longitude, -elevation_m)
+
+# Pivot weather data
+weather <- pivot_wider(weather, names_from = code, values_from = c(avg.wind_m.s, precip_mm, avg.temp_c, max.temp_c, min.temp_c, obs.temp_c))
 
 # Create composite columns
 weather$avg.temp_c <- NA
-weather$precip_mm <- weather$precip_mm_westerly
-weather$wind_m.s <- weather$wind_m.s_westerly
+weather$avg.temp_station <- NA
+weather$avg.temp_type <- NA
+weather$precip_mm <- NA
+weather$precip_station <- NA
+weather$avg.wind_m.s <- NA
+weather$avg.wind_station <- NA
 weather$max.temp_c <- NA
+weather$max.temp_station <- NA
 weather$min.temp_c <- NA
+weather$min.temp_station <- NA
 weather$temp.range_c <- NA
-weather$station <- NA
 
-# Fill composite columns using westerly only where ninigret is missing
+# Fill in composite columns in the order of station_priority
 for (i in 1:nrow(weather)){
   
   # Average Temp
-  if (!is.na(weather$avg.temp_c_ninigret[i])){
-    weather$avg.temp_c[i] <- weather$avg.temp_c_ningret[i]
-    weather$station[i] <- "ninigret"
-  } else {
-    weather$avg.temp_c[i] <- weather$avg.temp_c_westerly[i]
-    weather$station[i] <- "westerly"
+  for (j in station_priority){
+    if (!is.na(weather[[paste0("avg.temp_c_", j)]][i])){
+      weather$avg.temp_c[i] <- weather[[paste0("avg.temp_c_", j)]][i]
+      weather$avg.temp_station[i] <- j
+      weather$avg.temp_type[i] <- "hrly"
+      break
+    }
+  }
+  
+  # Precipitation
+  for (j in station_priority){
+    if (!is.na(weather[[paste0("precip_mm_", j)]][i])){
+      weather$precip_mm[i] <- weather[[paste0("precip_mm_", j)]][i]
+      weather$precip_station[i] <- j
+      break
+    }
+  }
+  
+  # Wind Speed
+  for (j in station_priority){
+    if (!is.na(weather[[paste0("avg.wind_m.s_", j)]][i])){
+      weather$avg.wind_m.s[i] <- weather[[paste0("avg.wind_m.s_", j)]][i]
+      weather$avg.wind_station[i] <- j
+      break
+    }
   }
   
   # Max Temp
-  if (!is.na(weather$max.temp_c_ninigret[i])){
-    weather$max.temp_c[i] <- weather$max.temp_c_ninigret[i]
-  } else {
-    weather$max.temp_c[i] <- weather$max.temp_c_westerly[i]
+  for (j in station_priority){
+    if (!is.na(weather[[paste0("max.temp_c_", j)]][i])){
+      weather$max.temp_c[i] <- weather[[paste0("max.temp_c_", j)]][i]
+      weather$max.temp_station[i] <- j
+      break
+    }
   }
   
   # Min Temp
-  if (!is.na(weather$min.temp_c_ninigret[i])){
-    weather$min.temp_c[i] <- weather$min.temp_c_ninigret[i]
-  } else {
-    weather$min.temp_c[i] <- weather$min.temp_c_westerly[i]
+  for (j in station_priority){
+    if (!is.na(weather[[paste0("min.temp_c_", j)]][i])){
+      weather$min.temp_c[i] <- weather[[paste0("min.temp_c_", j)]][i]
+      weather$min.temp_station[i] <- j
+      break
+    }
+  }
+  
+  # If average temp is missing, calculate it from max and min
+  if (is.na(weather$avg.temp_c[i])){
+    if (!is.na(weather$max.temp_c[i]) & !is.na(weather$min.temp_c[i])){
+      weather$avg.temp_c[i] <- (weather$max.temp_c[i] + weather$min.temp_c[i]) / 2
+      weather$avg.temp_station[i] <- weather$max.temp_station[i]
+      weather$avg.temp_type[i] <- "hilo"
+    }
+  }
+  
+  # If average temp is still missing, use observed temp in order of station priority
+  if (is.na(weather$avg.temp_c[i])){
+    for (j in station_priority){
+      if (!is.na(weather[[paste0("obs.temp_c_", j)]][i])){
+        weather$avg.temp_c[i] <- weather[[paste0("obs.temp_c_", j)]][i]
+        weather$avg.temp_station[i] <- j
+        weather$avg.temp_type[i] <- "obs"
+        break
+      }
+    }
   }
   
 }
 
+# Select desired columns
+weather <- select(weather,
+  date,
+  avg.temp_c, avg.temp_type, avg.temp_station,
+  precip_mm, precip_station,
+  avg.wind_m.s, avg.wind_station,
+  max.temp_c, max.temp_station,
+  min.temp_c, min.temp_station,
+  temp.range_c)
+
 # Add temperature range
 weather$temp.range_c <- weather$max.temp_c - weather$min.temp_c
-
-# Select desired columns
-weather <- select(weather, -wind_m.s_westerly, -precip_mm_westerly, -avg.temp_c_westerly,
-  -max.temp_c_westerly, -min.temp_c_westerly, -avg.temp_c_ninigret,
-  -max.temp_c_ninigret, -min.temp_c_ninigret)
 
 # Add heating degrees per day relative to 18 C
 weather$heating.degrees_day <- ifelse(weather$avg.temp_c < 18, 18 - weather$avg.temp_c, 0)
