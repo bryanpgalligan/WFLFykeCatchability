@@ -147,30 +147,30 @@ weather$min.temp_c <- NA
 weather$temp.range_c <- NA
 weather$station <- NA
 
-# Fill composite columns using ninigret only where westerly is missing
+# Fill composite columns using westerly only where ninigret is missing
 for (i in 1:nrow(weather)){
   
   # Average Temp
-  if (!is.na(weather$avg.temp_c_westerly[i])){
+  if (!is.na(weather$avg.temp_c_ninigret[i])){
+    weather$avg.temp_c[i] <- weather$avg.temp_c_ningret[i]
+    weather$station[i] <- "ninigret"
+  } else {
     weather$avg.temp_c[i] <- weather$avg.temp_c_westerly[i]
     weather$station[i] <- "westerly"
-  } else {
-    weather$avg.temp_c[i] <- weather$avg.temp_c_ninigret[i]
-    weather$station[i] <- "ninigret"
   }
   
   # Max Temp
-  if (!is.na(weather$max.temp_c_westerly[i])){
-    weather$max.temp_c[i] <- weather$max.temp_c_westerly[i]
-  } else {
+  if (!is.na(weather$max.temp_c_ninigret[i])){
     weather$max.temp_c[i] <- weather$max.temp_c_ninigret[i]
+  } else {
+    weather$max.temp_c[i] <- weather$max.temp_c_westerly[i]
   }
   
   # Min Temp
-  if (!is.na(weather$min.temp_c_westerly[i])){
-    weather$min.temp_c[i] <- weather$min.temp_c_westerly[i]
-  } else {
+  if (!is.na(weather$min.temp_c_ninigret[i])){
     weather$min.temp_c[i] <- weather$min.temp_c_ninigret[i]
+  } else {
+    weather$min.temp_c[i] <- weather$min.temp_c_westerly[i]
   }
   
 }
