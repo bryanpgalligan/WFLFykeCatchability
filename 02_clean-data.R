@@ -121,8 +121,6 @@ weather <- read.csv("data/raw-data/DailyWeather.csv")
 colnames(weather) <- c("code", "station", "latitude", "longitude", "elevation_m",
   "date", "avg.wind_m.s", "precip_mm", "avg.temp_c", "max.temp_c", "min.temp_c", "obs.temp_c")
 
-##### WIP #####
-
 # Extract weather stations
 stations <- weather %>% distinct(code, .keep_all = TRUE)
 
@@ -258,6 +256,11 @@ gt_plt_summary(weather[2:ncol(weather)], "Weather Summary")
 
 
 ##### Water Quality Data #####
+
+##### WIP #####
+
+# Something is not working in this section. It could be related to adding the new
+# water quality files.
 
 ## This section of code runs through the in-water data loggers placed
 ## on the fyke nets to generate summary statistics. DO NOT
@@ -405,8 +408,12 @@ fyke$noaa.temp.range_c <- fyke$noaa.max.temp_c - fyke$noaa.min.temp_c
 # Replace all NaN with NA
 fyke <- mutate_if(fyke, is.numeric, function(x) ifelse(is.nan(x), NA, x))
 
+# Replace all inf with NA
+fyke <- mutate_if(fyke, is.numeric, function(x) ifelse(is.infinite(x), NA, x))
+
 # Summary of combined data
-fyke.summary <- gt_plt_summary(fyke[6:ncol(fyke)], "Combined Data Summary")
+#fyke.summary <- 
+gt_plt_summary(fyke[6:ncol(fyke)], "Combined Data Summary")
 
 # Save summary
 gtsave(fyke.summary, "documents/02_FykeSummary.png")
