@@ -401,10 +401,8 @@ for (i in 1:nrow(fyke)){
     fyke$noaa.avg.high_c[i] <- mean(weather_sub$max.temp_c, na.rm = TRUE)
     fyke$noaa.heating.degrees_day[i] <- mean(weather_sub$heating.degrees_day, na.rm = TRUE)
     
-    # Skip if any wind data are missing
-    if(all(!is.na(weather_sub$wind_m.s))) {
-      fyke$noaa.wind_m.s[i] <- mean(weather_sub$wind_m.s)
-    }
+    # Wind data
+    fyke$noaa.wind_m.s[i] <- mean(weather_sub$avg.wind_m.s, na.rm = TRUE)
     
     # Skip if any precip data are missing
     if(all(!is.na(weather_sub$precip_mm))) {
