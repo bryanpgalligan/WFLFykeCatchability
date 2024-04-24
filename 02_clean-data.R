@@ -102,7 +102,18 @@ for (i in 1:nrow(fyke)){
 # Change 999 to NA in set occurrence per year
 fyke$set.occurrence_yr <- ifelse(fyke$set.occurrence_yr == 999, NA, fyke$set.occurrence_yr)
 
+# Fill in haul.year column
+fyke$haul.year <- NA
+fyke$haul.year <- as.numeric(substr(fyke$event, 5, 8))
 
+# Fill in haul.winter column
+fyke$haul.winter <- NA
+fyke$haul.winter <- ifelse(fyke$haul.month %in% c(7:12), fyke$haul.year + 1, fyke$haul.year)
+
+# Make haul.year and haul.winter columns 2 and 3
+fyke <- fyke[, c(7:8, 1:6, 9:ncol(fyke))]
+
+#gt_plt_summary(fyke[3:ncol(fyke)], "Fyke Summary")
 
 
 ##### Weather Data #####
@@ -143,6 +154,9 @@ station_priority <- stations$code[order(stations$distance)]
 
 # Delete unwanted columns
 weather <- select(weather, -station, -latitude, -longitude, -elevation_m)
+
+# Make date column a date object
+weather$date <- as.Date(weather$date, "%m/%d/%y")
 
 # Pivot weather data
 weather <- pivot_wider(weather, names_from = code, values_from = c(avg.wind_m.s, precip_mm, avg.temp_c, max.temp_c, min.temp_c, obs.temp_c))
@@ -250,17 +264,12 @@ weather$temp.range_c <- weather$max.temp_c - weather$min.temp_c
 weather$heating.degrees_day <- ifelse(weather$avg.temp_c < 18, 18 - weather$avg.temp_c, 0)
 
 # Summarize weather data
-gt_plt_summary(weather[2:ncol(weather)], "Weather Summary")
+gt_plt_summary(weather, "Weather Summary")
 
 
 
 
 ##### Water Quality Data #####
-
-##### WIP #####
-
-# Something is not working in this section. It could be related to adding the new
-# water quality files.
 
 ## This section of code runs through the in-water data loggers placed
 ## on the fyke nets to generate summary statistics. DO NOT
@@ -338,9 +347,13 @@ for(i in 1:nrow(fyke)) {
   }
   
 }
+
+# Remove Inf and NaN
+fyke <- mutate_if(fyke, is.numeric, function(x) ifelse(is.infinite(x), NA, x))
+fyke <- mutate_if(fyke, is.numeric, function(x) ifelse(is.nan(x), NA, x))
   
 # Summary of fyke data
-gt_plt_summary(fyke[6:ncol(fyke)], "Fyke Sets Summary")
+gt_plt_summary(fyke[3:ncol(fyke)], "Fyke Summary")
 
 
 
@@ -412,8 +425,7 @@ fyke <- mutate_if(fyke, is.numeric, function(x) ifelse(is.nan(x), NA, x))
 fyke <- mutate_if(fyke, is.numeric, function(x) ifelse(is.infinite(x), NA, x))
 
 # Summary of combined data
-#fyke.summary <- 
-gt_plt_summary(fyke[6:ncol(fyke)], "Combined Data Summary")
+fyke.summary <- gt_plt_summary(fyke[3:ncol(fyke)], "Combined Data Summary")
 
 # Save summary
 gtsave(fyke.summary, "documents/02_FykeSummary.png")
