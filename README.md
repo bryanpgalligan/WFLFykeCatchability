@@ -11,7 +11,7 @@ This is the most comprehensive \*.csv file containing data from RIDMF's Fyke sur
 It contains **1039 observations** of **50 variables**, where each observation represents a fyke survey sampling event. The variables (columns) are:
 
 | Variable                 | Units                        | Description                                                                                                                                                                    | Source            |
-|------------------|------------------|------------------|------------------|
+|--------------------------|------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
 | event                    | N/A                          | A unique code for each sampling event that contains date and station information                                                                                               | RIDMF Fyke Survey |
 | station                  | N/A                          | A unique code for each survey station                                                                                                                                          | RIDMF Fyke Survey |
 | pond                     | N/A                          | Abbreviation for the pond in which sampling took place. NP = Ninigret Pond; PJ = Point Judith Pond; PP = Potter Pond.                                                          | RIDMF Fyke Survey |
