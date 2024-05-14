@@ -1,5 +1,5 @@
 ## This script processes the complete dataset and
-## generates the final datasets for the analysis.
+## generates the datasets for the analysis.
 
 # Load data
 fyke <- read.csv("data/clean-data/02_FykeSets_Complete.csv")
@@ -169,8 +169,39 @@ fyke99 <- rename(fyke99,
   wind_m.s = noaa.wind_m.s
   )
 
+
+## Identify autocorrelated variables
+
+# Subset of numeric columns
+fyke99_num <- select_if(fyke99, is.numeric)
+
+# Correlation matrix
+cor_matrix <- cor(fyke99_num, use = "pairwise.complete.obs", method = "spearman")
+
+# Plot correlations
+corrplot(cor_matrix)
+
+# Make correlation matrix a data frame
+cor_matrix <- as.data.frame(as.table(cor_matrix))
+
+# Turn all 1's into NA
+cor_matrix$Freq[cor_matrix$Freq == 1] <- NA
+
+# Make all values absolute value
+cor_matrix$Freq <- abs(cor_matrix$Freq)
+
+
+## Variables with correlation coefficient >0.7
+# heating.degrees_day * air.temp_c [1.00]
+# heating.degrees_day * water.temp_c [0.80]
+# air.temp_c * water.temp_c [0.80]
+
+# Remove heating.degrees_day
+fyke99 <- select(fyke99, -heating.degrees_day)
+
+
 # Summary of Fyke 1999+ dataset
-fyke.summary <- gt_plt_summary(fyke99[4:16], "Processed Fyke Sets 1999-2024")
+fyke.summary <- gt_plt_summary(fyke99[4:15], "Processed Fyke Sets 1999-2024")
 
 # Save summary
 gtsave(fyke.summary, "documents/03_FykeSummary_CandidateVars_1999.png")
@@ -279,8 +310,55 @@ fyke19 <- rename(fyke19,
   wfl_binary = wfl_binary
   )
 
+
+## Identify autocorrelated variables
+
+# Subset of numeric columns
+fyke19_num <- select_if(fyke19, is.numeric)
+
+# Correlation matrix
+cor_matrix <- cor(fyke19_num, use = "pairwise.complete.obs", method = "spearman")
+
+# Plot correlations
+corrplot(cor_matrix)
+
+# Make correlation matrix a data frame
+cor_matrix <- as.data.frame(as.table(cor_matrix))
+
+# Turn all 1's into NA
+cor_matrix$Freq[cor_matrix$Freq == 1] <- NA
+
+# Make all values absolute value
+cor_matrix$Freq <- abs(cor_matrix$Freq)
+
+
+## Variables with correlation coefficient >0.7
+# heating.degrees_day * air.temp_c [1.00]
+# min.water.temp_c * mean.water.temp_c [0.92]
+# max.water.temp_c * mean.water.temp_c [0.89]
+# air.temp_c * mean.water.temp_c [0.78]
+# heating.degrees_day * mean.water.temp_c [0.78]
+# air.temp_c * min.water.temp_c [0.76]
+# heating.degrees_day * min.water.temp_c [0.76]
+# air.temp_c * max.water.temp_c [0.70]
+# heating.degrees_day * max.water.temp_c [0.70]
+# max.water.temp_c * min.water.temp_c [0.70]
+
+# Remove heating.degrees_day
+fyke19 <- select(fyke19, -heating.degrees_day)
+
+## Remove min and max water temp because both are highly correlated with the mean and with each other
+
+# Remove min water temp
+fyke19 <- select(fyke19, -min.water.temp_c)
+
+# Remove max water temp
+fyke19 <- select(fyke19, -max.water.temp_c)
+
+
+
 # Summary of Fyke 2019+ dataset
-fyke.summary <- gt_plt_summary(fyke19[4:21], "Processed Fyke Sets 2019-2024")
+fyke.summary <- gt_plt_summary(fyke19[4:22], "Processed Fyke Sets 2019-2024")
 
 # Save summary
 gtsave(fyke.summary, "documents/03_FykeSummary_CandidateVars_2019.png")
