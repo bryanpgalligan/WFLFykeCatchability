@@ -120,8 +120,8 @@ gt_plt_summary(fyke99[56:57])
 
 # This deletes the following columns:
 # Spatial data:
-# Time/Date: event, set.date, haul.date, haul.month, haul.year
-# Sampling:
+# Time/Date: set.date, haul.date, haul.month, haul.year
+# Sampling: event
 # Tide: mean.depth_m, min.depth_m, max.depth_m, range.depth_m
 # Water temp: hs.avg.water.temp_c, haul.water.temp_c, set.water.temp_c, mean.water.temp_c,
 #     min.water.temp_c, max.water.temp_c, range.water.temp_c, skewness.water.temp, kurtosis.water.temp,
@@ -181,120 +181,116 @@ write_csv(fyke99, "data/clean-data/03_FykeSets_CandidateVars_1999.csv")
 
 
 
+##### Select Variables - fyke19 #####
 
+# Summarize fyke19
+gt_plt_summary(fyke19[3:51])
 
-
-###### WIP ^^ #####
-
-# Remove extra date columns
-fyke <- fyke %>%
-  select(-set.date, -haul.date, -haul.month, -haul.year)
-
-# Add a water temp column
-fyke$water.temp_c <- NA
-for (i in 1:nrow(fyke)){
-  
-  # Order of priority is: hs.avg.water.temp_c, mean.water.temp_c, haul.water.temp_c, set.water.temp_c
-  if (!is.na(fyke$hs.avg.water.temp_c[i])){
-    fyke$water.temp_c[i] <- fyke$hs.avg.water.temp_c[i]
-  } else if (!is.na(fyke$mean.water.temp_c[i])){
-    fyke$water.temp_c[i] <- fyke$mean.water.temp_c[i]
-  } else if (!is.na(fyke$haul.water.temp_c[i])){
-    fyke$water.temp_c[i] <- fyke$haul.water.temp_c[i]
-  } else {
-    fyke$water.temp_c[i] <- fyke$set.water.temp_c[i]
-  }
-  
-}
-
-# Remove extra water temp columns
-fyke <- select(fyke, -hs.avg.water.temp_c, -haul.water.temp_c, -set.water.temp_c)
-
-
-# Add an air temp column
-fyke$air.temp_c <- NA
-for (i in 1:nrow(fyke)){
-  
-  # Order of priority is: hs.avg.air.temp_c, haul.air.temp_c, set.air.temp_c, noaa.avg.high_c
-  if (!is.na(fyke$hs.avg.air.temp_c[i])){
-    fyke$air.temp_c[i] <- fyke$hs.avg.air.temp_c[i]
-  } else if (!is.na(fyke$haul.air.temp_c[i])){
-    fyke$air.temp_c[i] <- fyke$haul.air.temp_c[i]
-  } else if (!is.na(fyke$set.air.temp_c[i])){
-    fyke$air.temp_c[i] <- fyke$set.air.temp_c[i]
-  } else {
-    fyke$air.temp_c[i] <- fyke$noaa.avg.high_c[i]
-  }
-  
-}
-
-# Recalculate heating degrees per day based on new air temp column
-fyke$heating.degrees_day <- 
-  ifelse(fyke$air.temp_c < 18, 18 - fyke$air.temp_c, 0)
-
-# Remove extra air temp columns
-fyke <- select(fyke, -hs.avg.air.temp_c, -noaa.avg.air.temp_c,
-  -haul.air.temp_c, -set.air.temp_c, -noaa.heating.degrees_day,
-  -noaa.avg.high_c)
-
-# Add a salinity column
-fyke$salinity_ppt <- NA
-for (i in 1:nrow(fyke)){
-  
-  # Order of priority is: hs.avg.salinity_ppt, haul.salinity_ppt, set.salinity_ppt
-  if (!is.na(fyke$hs.avg.salinity_ppt[i])){
-    fyke$salinity_ppt[i] <- fyke$hs.avg.salinity_ppt[i]
-  } else if (!is.na(fyke$haul.salinity_ppt[i])){
-    fyke$salinity_ppt[i] <- fyke$haul.salinity_ppt[i]
-  } else {
-    fyke$salinity_ppt[i] <- fyke$set.salinity_ppt[i]
-  }
-  
-}
-
-# Remove extra salinity columns
-fyke <- select(fyke, -hs.avg.salinity_ppt, -haul.salinity_ppt, -set.salinity_ppt)
-
-
-# Add a DO column
-fyke$do_mg.l <- NA
-for (i in 1:nrow(fyke)){
+## DO
+# Make a composite DO column in the following order of priority:
+# hs.avg.do_mg.l, haul.do_mg.l, set.do_mg.l
+fyke19$do_mg.l <- NA
+fyke19$do.source <- NA
+for (i in 1:nrow(fyke19)){
   
   # Order of priority is: hs.avg.do_mg.l, haul.do_mg.l, set.do_mg.l
-  if (!is.na(fyke$hs.avg.do_mg.l[i])){
-    fyke$do_mg.l[i] <- fyke$hs.avg.do_mg.l[i]
-  } else if (!is.na(fyke$haul.do_mg.l[i])){
-    fyke$do_mg.l[i] <- fyke$haul.do_mg.l[i]
+  if (!is.na(fyke19$hs.avg.do_mg.l[i])){
+    fyke19$do_mg.l[i] <- fyke19$hs.avg.do_mg.l[i]
+    fyke19$do.source[i] <- "hs.avg.do_mg.l"
+  } else if (!is.na(fyke19$haul.do_mg.l[i])){
+    fyke19$do_mg.l[i] <- fyke19$haul.do_mg.l[i]
+    fyke19$do.source[i] <- "haul.do_mg.l"
   } else {
-    fyke$do_mg.l[i] <- fyke$set.do_mg.l[i]
+    fyke19$do_mg.l[i] <- fyke19$set.do_mg.l[i]
+    fyke19$do.source[i] <- "set.do_mg.l"
   }
   
 }
 
-# Remove extra DO columns
-fyke <- select(fyke, -hs.avg.do_mg.l, -haul.do_mg.l, -set.do_mg.l)
+# Summary of DO
+gt_plt_summary(fyke19[52:53])
 
-# Remove delta water temp
-fyke <- select(fyke, -delta.water.temp_c)
+# 10.3% are still missing (439 total sets)
+# 391/439 = 89.07% are haul/set average
+# 47/439 = 10.70% are set DO
+# 1/439 = 0.23% are haul DO
 
-# Remove delta salinity
-fyke <- select(fyke, -delta.salinity_ppt)
+## Select and reorder columns
 
-# Remove delta DO
-fyke <- select(fyke, -delta.do_mg.l)
+# Criteria for inclusion: <=15% missing data
+
+# This deletes the following columns:
+# Spatial data:
+# Time/Date: set.date, haul.date, haul.month, haul.year
+# Sampling: event, set.occurrence_yr
+# Tide: mean.depth_m, min.depth_m, max.depth_m
+# Water temp: set.water.temp_c, hs.avg.water.temp_c, haul.water.temp_c, delta.water.temp_c,
+#     delta.water.temp_c.day
+# Air temp: set.air.temp_c, haul.air.temp_c, hs.avg.air.temp_c, noaa.max.temp_c, noaa.min.temp_c,
+#     noaa.avg.high_c
+# Salinity: set.salinity_ppt, haul.salinity_ppt, delta.salinity_ppt
+# DO: set.do_mg.l, haul.do_mg.l, hs.avg.do_mg.l, delta.do_mg.l, do.source
+# Catch:
+# Precip:
+# Wind:
+
+# Select columns
+fyke19 <- select(fyke19,
+  pond, station, #spatial data
+  haul.winter, haul.date_jul, #time/date
+  soak_days, #sampling
+  lunar.illumination, range.depth_m, #tide
+  mean.water.temp_c, min.water.temp_c, max.water.temp_c, range.water.temp_c, skewness.water.temp,
+    kurtosis.water.temp, bimodality.water.temp, #water temp
+  noaa.avg.air.temp_c, noaa.temp.range_c, noaa.heating.degrees_day, #air temp
+  hs.avg.salinity_ppt, delta.salinity_ppt.day, #salinity
+  do_mg.l, delta.do_mg.l.day, #DO
+  noaa.precip_mm.day, #precip
+  noaa.wind_m.s, #wind
+  wfl_freq, wfl_binary #catch
+  )
+
+# Rename columns
+fyke19 <- rename(fyke19,
+  pond = pond,
+  station = station,
+  haul.winter = haul.winter,
+  haul.date_jul = haul.date_jul,
+  soak_days = soak_days,
+  lunar.illumination = lunar.illumination,
+  range.depth_m = range.depth_m,
+  mean.water.temp_c = mean.water.temp_c,
+  min.water.temp_c = min.water.temp_c,
+  max.water.temp_c = max.water.temp_c,
+  range.water.temp_c = range.water.temp_c,
+  skewness.water.temp = skewness.water.temp,
+  kurtosis.water.temp = kurtosis.water.temp,
+  bimodality.water.temp = bimodality.water.temp,
+  air.temp_c = noaa.avg.air.temp_c,
+  air.temp.range_c = noaa.temp.range_c,
+  heating.degrees_day = noaa.heating.degrees_day,
+  salinity_ppt = hs.avg.salinity_ppt,
+  delta.salinity_ppt.day = delta.salinity_ppt.day,
+  do_mg.l = do_mg.l,
+  delta.do_mg.l.day = delta.do_mg.l.day,
+  precip_mm.day = noaa.precip_mm.day,
+  wind_m.s = noaa.wind_m.s,
+  wfl_freq = wfl_freq,
+  wfl_binary = wfl_binary
+  )
+
+# Summary of Fyke 2019+ dataset
+fyke.summary <- gt_plt_summary(fyke19[4:21], "Processed Fyke Sets 2019-2024")
+
+# Save summary
+gtsave(fyke.summary, "documents/03_FykeSummary_CandidateVars_2019.png")
+
+# Save dataset
+write_csv(fyke19, "data/clean-data/03_FykeSets_CandidateVars_2019.csv")
 
 
 
 
-##### Processing for 1999-2024 #####
 
 
 
-
-##### Processing for 2019-2024 #####
-
-
-
-
-# Summarize data
-gt_plt_summary(fyke)
