@@ -425,6 +425,242 @@ ggsave("documents/04_Fyke99_WaterFreq_PartialDependence.png", width = 10, height
 
 ##### Fyke 19 - Water Temp * Bin #####
 
+# Remove unwanted columns
+fyke19_waterbin <- select(fyke19, -c(air.temp_c, wfl_freq))
+
+# Impute NAs using random forest proximity
+set.seed(123)
+fyke19_waterbin <- rfImpute(wfl_binary ~ ., data = fyke19_waterbin)
+
+# Add random numbers
+set.seed(123)
+fyke19_waterbin$random <- runif(nrow(fyke19_waterbin), min = 1, max = 100)
+
+# Bootstrap sample for model training
+set.seed(123)
+fyke19_waterbin_train <- slice_sample(fyke19_waterbin, prop = 1, replace = TRUE)
+
+# Out of bag sample for testing
+set.seed(123)
+fyke19_waterbin_test <- setdiff(fyke19_waterbin, fyke19_waterbin_train)
+
+# Data for RFM
+x <- select(fyke19_waterbin_train, -wfl_binary)
+y <- fyke19_waterbin_train$wfl_binary
+xtest <- select(fyke19_waterbin_test, -wfl_binary)
+ytest <- fyke19_waterbin_test$wfl_binary
+
+# Tune RFM for optimal mtry
+set.seed(123)
+tuneRF(x = x, y = y)
+
+# mtry 2 is optimum based on OOB error
+
+# Random forest model
+set.seed(123)
+rf_f19_waterbin <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 2,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+# Plot model - error reaches asymptote well before 200 trees, so that's the ntree we'll use
+plot(rf_f19_waterbin)
+
+# Summary
+rf_f19_waterbin
+
+# Error rate on training data is 10.71% and on testing data is 21.16%
+
+# Variable importance
+ImpData <- as.data.frame(importance(rf_f19_waterbin))
+ImpData$Var.Names <- row.names(ImpData)
+#ImpData$Var.Names <- c("Trophic Level", "K", "Habitat", "CPUE", "Maturity", "Length")
+ImpData$Var.Names <- fct_reorder(ImpData$Var.Names, ImpData$MeanDecreaseAccuracy)
+#colnames(ImpData)[colnames(ImpData) == "IncNodePurity"] <- "Increase in Node Purity"
+ggplot(ImpData, aes(x = Var.Names, y = MeanDecreaseAccuracy)) +
+  geom_segment(aes(x = Var.Names, xend = Var.Names, y = 0, yend = MeanDecreaseAccuracy), color = "skyblue") +
+  geom_point(aes(size = MeanDecreaseGini), color = "blue", alpha=0.6) +
+  theme_light() +
+  coord_flip() +
+  xlab("") +
+  ylab("Mean Decrease in Accuracy") +
+  theme_pubr() +
+  theme(legend.position = "bottom")
+
+# Select only variables that outperformed random numbers
+x <- select(x, station, haul.date_jul, mean.water.temp_c, delta.do_mg.l.day, delta.salinity_ppt.day, salinity_ppt, precip_mm.day, range.depth_m, do_mg.l, skewness.water.temp)
+xtest <- select(xtest, station, haul.date_jul, mean.water.temp_c, delta.do_mg.l.day, delta.salinity_ppt.day, salinity_ppt, precip_mm.day, range.depth_m, do_mg.l, skewness.water.temp)
+
+# Trimmed RFM
+set.seed(123)
+rf_f19_waterbin <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 2,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+# Plot model - error reaches asymptote well before 200 trees, so that's the ntree we'll use
+plot(rf_f19_waterbin)
+
+# Summary
+rf_f19_waterbin
+
+# Error rate of 10.48% on training data and 25.31% on testing data
+
+# Variable importance
+ImpData <- as.data.frame(importance(rf_f19_waterbin))
+ImpData$Var.Names <- row.names(ImpData)
+#ImpData$Var.Names <- c("Trophic Level", "K", "Habitat", "CPUE", "Maturity", "Length")
+ImpData$Var.Names <- fct_reorder(ImpData$Var.Names, ImpData$MeanDecreaseAccuracy)
+#colnames(ImpData)[colnames(ImpData) == "IncNodePurity"] <- "Increase in Node Purity"
+a <- ggplot(ImpData, aes(x = Var.Names, y = MeanDecreaseAccuracy)) +
+  geom_segment(aes(x = Var.Names, xend = Var.Names, y = 0, yend = MeanDecreaseAccuracy), color = "skyblue") +
+  geom_point(aes(size = MeanDecreaseGini), color = "blue", alpha=0.6) +
+  theme_light() +
+  coord_flip() +
+  xlab("") +
+  ylab("Mean Decrease in Accuracy") +
+  theme_pubr() +
+  theme(legend.position = "bottom")
+
+
+## Partial dependence plots
+
+# Station
+pd_station <- bind_rows(partialPlot(rf_f19_waterbin,
+  pred.data = x, x.var = "station", which.class = 1,
+  plot = FALSE))
+pd_station$x <- fct_reorder(pd_station$x, pd_station$y, .desc = TRUE)
+b <- ggplot(pd_station, aes(x = x, y = y)) +
+  geom_bar(stat = "identity") +
+  xlab("Station") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+# Haul date
+pd_date <- bind_rows(partialPlot(rf_f19_waterbin,
+  pred.data = x, x.var = "haul.date_jul", which.class = 1,
+  plot = FALSE, n.pt = 200))
+c <- ggplot(pd_date, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Haul Date") +
+  ylab("Catch Probability") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Salinity
+pd_salinity <- bind_rows(partialPlot(rf_f19_waterbin,
+  pred.data = x, x.var = "salinity_ppt", which.class = 1,
+  plot = FALSE, n.pt = 200))
+d <- ggplot(pd_salinity, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Salinity (ppt)") +
+  ylab("Catch Probability") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Precip
+pd_precip <- bind_rows(partialPlot(rf_f19_waterbin,
+  pred.data = x, x.var = "precip_mm.day", which.class = 1,
+  plot = FALSE, n.pt = 200))
+e <- ggplot(pd_precip, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Precipitation (mm/day)") +
+  ylab("Catch Probability") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Mean water temp
+pd_water <- bind_rows(partialPlot(rf_f19_waterbin,
+  pred.data = x, x.var = "mean.water.temp_c", which.class = 1,
+  plot = FALSE, n.pt = 200))
+f <- ggplot(pd_water, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Mean Water Temp (C)") +
+  ylab("Catch Probability") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Depth range
+pd_depth <- bind_rows(partialPlot(rf_f19_waterbin,
+  pred.data = x, x.var = "range.depth_m", which.class = 1,
+  plot = FALSE, n.pt = 200))
+g <- ggplot(pd_depth, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Depth Range (m)") +
+  ylab("Catch Probability") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Delta DO
+pd_do <- bind_rows(partialPlot(rf_f19_waterbin,
+  pred.data = x, x.var = "delta.do_mg.l.day", which.class = 1,
+  plot = FALSE, n.pt = 200))
+h <- ggplot(pd_do, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Delta DO (mg/L/day)") +
+  ylab("Catch Probability") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Delta Salinity
+pd_salinity <- bind_rows(partialPlot(rf_f19_waterbin,
+  pred.data = x, x.var = "delta.salinity_ppt.day", which.class = 1,
+  plot = FALSE, n.pt = 200))
+i <- ggplot(pd_salinity, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Delta Salinity (ppt/day)") +
+  ylab("Catch Probability") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# DO
+pd_do <- bind_rows(partialPlot(rf_f19_waterbin,
+  pred.data = x, x.var = "do_mg.l", which.class = 1,
+  plot = FALSE, n.pt = 200))
+j <- ggplot(pd_do, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("DO (mg/L)") +
+  ylab("Catch Probability") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Skewness water temp
+pd_skew <- bind_rows(partialPlot(rf_f19_waterbin,
+  pred.data = x, x.var = "skewness.water.temp", which.class = 1,
+  plot = FALSE, n.pt = 200))
+k <- ggplot(pd_skew, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Water Temp Skewness") +
+  ylab("Catch Probability") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Combine plots
+ggarrange(a, b, c, d, e, f, g, h, i, j, k, ncol = 2, nrow = 6)
+
+# Save plots
+ggsave("documents/04_Fyke19_WaterBin_PartialDependence.png", width = 10, height = 12, units = "in")
+
+
+
 
 ##### Fyke 19 - Water Temp * Freq #####
 
