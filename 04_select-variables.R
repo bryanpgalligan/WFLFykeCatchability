@@ -664,6 +664,194 @@ ggsave("documents/04_Fyke19_WaterBin_PartialDependence.png", width = 10, height 
 
 ##### Fyke 19 - Water Temp * Freq #####
 
+# Remove unwanted columns
+fyke19_waterfreq <- select(fyke19, -c(air.temp_c, wfl_binary))
+
+# Impute NAs using random forest proximity
+set.seed(123)
+fyke19_waterfreq <- rfImpute(wfl_freq ~ ., data = fyke19_waterfreq)
+
+# Add random numbers
+set.seed(123)
+fyke19_waterfreq$random <- runif(nrow(fyke19_waterfreq), min = 1, max = 100)
+
+# Bootstrap sample for model training
+set.seed(123)
+fyke19_waterfreq_train <- slice_sample(fyke19_waterfreq, prop = 1, replace = TRUE)
+
+# Out of bag sample for testing
+set.seed(123)
+fyke19_waterfreq_test <- setdiff(fyke19_waterfreq, fyke19_waterfreq_train)
+
+# Data for RFM
+x <- select(fyke19_waterfreq_train, -wfl_freq)
+y <- fyke19_waterfreq_train$wfl_freq
+xtest <- select(fyke19_waterfreq_test, -wfl_freq)
+ytest <- fyke19_waterfreq_test$wfl_freq
+
+# Tune RFM for optimal mtry
+set.seed(123)
+tuneRF(x = x, y = y)
+
+# mtry 2 is optimum based on OOB error
+
+# Random forest model
+set.seed(123)
+rf_f19_waterfreq <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 2,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+# Plot model - error reaches asymptote well before 200 trees, so that's the ntree we'll use
+plot(rf_f19_waterfreq)
+
+# Summary
+rf_f19_waterfreq
+
+# 6.93 MSE of residuals and 59.91% of variance explained on training data
+# 12.84 MSE and 3.03% of variance explained on testing data
+
+# Variable importance
+ImpData <- as.data.frame(importance(rf_f19_waterfreq))
+ImpData$Var.Names <- row.names(ImpData)
+#ImpData$Var.Names <- c("Trophic Level", "K", "Habitat", "CPUE", "Maturity", "Length")
+ImpData$Var.Names <- fct_reorder(ImpData$Var.Names, ImpData$`%IncMSE`)
+colnames(ImpData)[colnames(ImpData) == "IncNodePurity"] <- "Increase in Node Purity"
+ggplot(ImpData, aes(x = Var.Names, y = `%IncMSE`)) +
+  geom_segment(aes(x = Var.Names, xend = Var.Names, y = 0, yend = `%IncMSE`), color = "skyblue") +
+  geom_point(aes(size = `Increase in Node Purity`), color = "blue", alpha=0.6) +
+  theme_light() +
+  coord_flip() +
+  xlab("") +
+  ylab("Increase in Node Purity") +
+  theme_pubr() +
+  theme(legend.position = "bottom")
+
+# Select only variables that outperformed random numbers
+x <- select(x, haul.date_jul, skewness.water.temp, precip_mm.day, lunar.illumination, bimodality.water.temp, air.temp.range_c)
+xtest <- select(xtest, haul.date_jul, skewness.water.temp, precip_mm.day, lunar.illumination, bimodality.water.temp, air.temp.range_c)
+
+# Trimmed RFM
+set.seed(123)
+rf_f19_waterfreq <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 2,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+# Plot model - error reaches asymptote well before 200 trees, so that's the ntree we'll use
+plot(rf_f19_waterfreq)
+
+# Summary
+rf_f19_waterfreq
+
+# MSE of residuals is 7.52 and 56.53% of variance is explained for training data
+# MSE is 18.37 and -38.74% of variance is explained for testing data
+
+# Variable importance
+ImpData <- as.data.frame(importance(rf_f19_waterfreq))
+ImpData$Var.Names <- row.names(ImpData)
+#ImpData$Var.Names <- c("Trophic Level", "K", "Habitat", "CPUE", "Maturity", "Length")
+ImpData$Var.Names <- fct_reorder(ImpData$Var.Names, ImpData$`%IncMSE`)
+colnames(ImpData)[colnames(ImpData) == "IncNodePurity"] <- "Increase in Node Purity"
+a <- ggplot(ImpData, aes(x = Var.Names, y = `%IncMSE`)) +
+  geom_segment(aes(x = Var.Names, xend = Var.Names, y = 0, yend = `%IncMSE`), color = "skyblue") +
+  geom_point(aes(size = `Increase in Node Purity`), color = "blue", alpha=0.6) +
+  theme_light() +
+  coord_flip() +
+  xlab("") +
+  ylab("% Increase in MSE") +
+  theme_pubr() +
+  theme(legend.position = "bottom")
+
+
+## Partial dependence plots
+
+# Haul date
+pd_date <- bind_rows(partialPlot(rf_f19_waterfreq,
+  pred.data = x, x.var = "haul.date_jul",
+  plot = FALSE, n.pt = 200))
+b <- ggplot(pd_date, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Haul Date") +
+  ylab("Frequency") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Precip
+pd_precip <- bind_rows(partialPlot(rf_f19_waterfreq,
+  pred.data = x, x.var = "precip_mm.day",
+  plot = FALSE, n.pt = 200))
+c <- ggplot(pd_precip, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Precipitation (mm/day)") +
+  ylab("Frequency") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Skewness water temp
+pd_skew <- bind_rows(partialPlot(rf_f19_waterfreq,
+  pred.data = x, x.var = "skewness.water.temp",
+  plot = FALSE, n.pt = 200))
+d <- ggplot(pd_skew, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Water Temp Skewness") +
+  ylab("Frequency") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Bimodality water temp
+pd_bimodal <- bind_rows(partialPlot(rf_f19_waterfreq,
+  pred.data = x, x.var = "bimodality.water.temp",
+  plot = FALSE, n.pt = 200))
+e <- ggplot(pd_bimodal, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Water Temp Bimodality") +
+  ylab("Frequency") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Lunar illumination
+pd_lunar <- bind_rows(partialPlot(rf_f19_waterfreq,
+  pred.data = x, x.var = "lunar.illumination",
+  plot = FALSE, n.pt = 200))
+f <- ggplot(pd_lunar, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Lunar Illumination") +
+  ylab("Frequency") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Air temp range
+pd_air <- bind_rows(partialPlot(rf_f19_waterfreq,
+  pred.data = x, x.var = "air.temp.range_c",
+  plot = FALSE, n.pt = 200))
+g <- ggplot(pd_air, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Air Temp Range (C)") +
+  ylab("Frequency") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+
+# Combine plots
+ggarrange(a, b, c, d, e, f, g, ncol = 2, nrow = 4)
+
+# Save plots
+ggsave("documents/04_Fyke19_WaterFreq_PartialDependence.png", width = 10, height = 10, units = "in")
+
+
+
+
 ##### Fyke 19 - Air Temp * Bin #####
 
 ##### Fyke 19 - Air Temp * Freq #####
