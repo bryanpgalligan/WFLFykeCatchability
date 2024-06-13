@@ -1,5 +1,4 @@
-## This script uses the RFM algorithm to select
-## predictor variables
+## This script uses the RFM algorithm to analyze the data.
 
 ## Load data
 fyke99 <- read.csv("data/clean-data/03_FykeSets_CandidateVars_1999.csv")
@@ -13,6 +12,10 @@ fyke19$station <- as.factor(fyke19$station)
 fyke99$wfl_binary <- as.factor(fyke99$wfl_binary)
 fyke19$wfl_binary <- as.factor(fyke19$wfl_binary)
 
+
+##### WIP - VSURF on 1999 data #####
+
+set.seed(45612)
 
 
 
