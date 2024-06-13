@@ -238,7 +238,7 @@ for (i in 1:nrow(fyke19)){
   
 }
 
-# Summary of DO
+# Summary of data
 gt_plt_summary(fyke19[52:53])
 
 # 10.3% are still missing (439 total sets)
@@ -253,7 +253,7 @@ gt_plt_summary(fyke19[52:53])
 # This deletes the following columns:
 # Spatial data:
 # Time/Date: set.date, haul.date, haul.month, haul.year
-# Sampling: event, set.occurrence_yr
+# Sampling: event
 # Tide: mean.depth_m, min.depth_m, max.depth_m
 # Water temp: set.water.temp_c, hs.avg.water.temp_c, haul.water.temp_c, delta.water.temp_c,
 #     delta.water.temp_c.day
@@ -269,7 +269,7 @@ gt_plt_summary(fyke19[52:53])
 fyke19 <- select(fyke19,
   pond, station, #spatial data
   haul.winter, haul.date_jul, #time/date
-  soak_days, #sampling
+  soak_days, set.occurrence_yr, #sampling
   lunar.illumination, range.depth_m, #tide
   mean.water.temp_c, min.water.temp_c, max.water.temp_c, range.water.temp_c, skewness.water.temp,
     kurtosis.water.temp, bimodality.water.temp, #water temp
@@ -288,6 +288,7 @@ fyke19 <- rename(fyke19,
   haul.winter = haul.winter,
   haul.date_jul = haul.date_jul,
   soak_days = soak_days,
+  set.occurrence_yr = set.occurrence_yr,
   lunar.illumination = lunar.illumination,
   range.depth_m = range.depth_m,
   mean.water.temp_c = mean.water.temp_c,
@@ -358,7 +359,7 @@ fyke19 <- select(fyke19, -max.water.temp_c)
 
 
 # Summary of Fyke 2019+ dataset
-fyke.summary <- gt_plt_summary(fyke19[4:22], "Processed Fyke Sets 2019-2024")
+fyke.summary <- gt_plt_summary(fyke19[4:23], "Processed Fyke Sets 2019-2024")
 
 # Save summary
 gtsave(fyke.summary, "documents/03_FykeSummary_CandidateVars_2019.png")
