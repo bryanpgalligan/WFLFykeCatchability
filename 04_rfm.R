@@ -13,9 +13,123 @@ fyke99$wfl_binary <- as.factor(fyke99$wfl_binary)
 fyke19$wfl_binary <- as.factor(fyke19$wfl_binary)
 
 
-##### WIP - VSURF on 1999 data #####
+##### WIP - VSURF on 1999 data w/ binary response #####
 
+# Remove freq response column
+fyke99_binary <- select(fyke99, -wfl_freq)
+
+# Impute NAs using random forest proximity
 set.seed(45612)
+fyke99_binary <- rfImpute(wfl_binary ~ ., data = fyke99_binary)
+
+# Select variables using VSURF
+set.seed(45612)
+vfyke99_bin <- VSURF(wfl_binary ~ ., data = fyke99_binary)
+
+summary(vfyke99_bin)
+
+plot(vfyke99_bin)
+
+
+# Subset data for random forest
+fyke99_binary <- select(fyke99_binary, c("wfl_binary", "station", "haul.date_jul", "haul.winter"))
+
+# Bootstrap sample for model training
+set.seed(45612)
+fyke99_binary_train <- slice_sample(fyke99_binary, prop = 1, replace = TRUE)
+
+# Out of bag sample for testing
+set.seed(45612)
+fyke99_binary_test <- setdiff(fyke99_binary, fyke99_binary_train)
+
+# Data for RFM
+x <- select(fyke99_binary_train, -wfl_binary)
+y <- fyke99_binary_train$wfl_binary
+xtest <- select(fyke99_binary_test, -wfl_binary)
+ytest <- fyke99_binary_test$wfl_binary
+
+# Tune RFM for optimal mtry
+set.seed(45612)
+tuneRF(x = x, y = y)
+
+# mtry 2 is optimum based on OOB error
+
+# Random forest model
+set.seed(45612)
+rf_f99_binary <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 2,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+# Plot model
+plot(rf_f99_binary)
+
+# Summary
+rf_f99_binary
+
+
+
+
+##### WIP - VSURF on 1999 data w/ freq response #####
+
+
+# Remove binary response column
+fyke99_freq <- select(fyke99, -wfl_binary)
+
+# Impute NAs using random forest proximity
+set.seed(45612)
+fyke99_freq <- rfImpute(wfl_freq ~ ., data = fyke99_freq)
+
+# Select variables using VSURF
+set.seed(45612)
+vfyke99_freq <- VSURF(wfl_freq ~ ., data = fyke99_freq)
+
+summary(vfyke99_bin)
+
+plot(vfyke99_bin)
+
+
+# Subset data for random forest
+fyke99_freq <- select(fyke99_freq, c("wfl_freq", "haul.winter", "haul.date_jul", "station", "water.temp_c", "air.temp_c", "soak_days", "pond", "salinity_ppt", "set.occurrence_yr"))
+
+# Bootstrap sample for model training
+set.seed(45612)
+fyke99_freq_train <- slice_sample(fyke99_freq, prop = 1, replace = TRUE)
+
+# Out of bag sample for testing
+fyke99_freq_test <- setdiff(fyke99_freq, fyke99_freq_train)
+
+# Data for RFM
+x <- select(fyke99_freq_train, -wfl_freq)
+y <- fyke99_freq_train$wfl_freq
+xtest <- select(fyke99_freq_test, -wfl_freq)
+ytest <- fyke99_freq_test$wfl_freq
+
+# Tune RFM for optimal mtry
+set.seed(45612)
+tuneRF(x = x, y = y)
+
+# mtry 9 is optimum based on OOB error
+
+# Random forest model
+set.seed(45612)
+rf_f99_freq <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 9,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+# Plot model
+plot(rf_f99_freq)
+
+# Summary
+rf_f99_freq
+
+
+
+
+
+
+
+
+
 
 
 
