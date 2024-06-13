@@ -2,10 +2,6 @@
 ## 1999-2024 fyke survey and the 2019-2024 water quality data.
 
 
-## TO DO:
-##    - Update with complete fyke and weather data at end of 2024 season
-
-
 ## Functions
 
 # A rounding function that always rounds .5 up to the nearest integer. (The normal
@@ -81,6 +77,7 @@ fyke$haul.date_jul <- ifelse(fyke$haul.date_jul < 200,
   fyke$haul.date_jul + 61, fyke$haul.date_jul - 304)
 
 # Calculate mean lunar illumination over soak period
+fyke$lunar.illumination <- NA
 fyke$haul.date <- as.Date(fyke$haul.date)
 for (i in 1:nrow(fyke)){
   
