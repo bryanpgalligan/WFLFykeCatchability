@@ -13,7 +13,9 @@ fyke99$wfl_binary <- as.factor(fyke99$wfl_binary)
 fyke19$wfl_binary <- as.factor(fyke19$wfl_binary)
 
 
-##### WIP - VSURF on 1999 data w/ binary response #####
+
+
+##### 1999 data binary response #####
 
 # Remove freq response column
 fyke99_binary <- select(fyke99, -wfl_freq)
@@ -31,8 +33,9 @@ summary(vfyke99_bin)
 plot(vfyke99_bin)
 
 
-# Subset data for random forest
-fyke99_binary <- select(fyke99_binary, c("wfl_binary", "station", "haul.date_jul", "haul.winter"))
+# Subset data for random forest - only winter, date, and station are necessary for parsimonious prediction
+fyke99_binary <- select(fyke99_binary, c("wfl_binary",
+  "haul.winter", "haul.date_jul", "station", "set.occurrence_yr", "pond"))
 
 # Bootstrap sample for model training
 set.seed(45612)
@@ -52,12 +55,12 @@ ytest <- fyke99_binary_test$wfl_binary
 set.seed(45612)
 tuneRF(x = x, y = y)
 
-# mtry 2 is optimum based on OOB error
+# mtry 5 is optimum based on OOB error
 
 # Random forest model
 set.seed(45612)
 rf_f99_binary <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
-  ntree = 200, mtry = 2,
+  ntree = 200, mtry = 5,
   importance = TRUE, proximity = TRUE, keep.forest = TRUE)
 
 # Plot model
@@ -66,6 +69,89 @@ plot(rf_f99_binary)
 # Summary
 rf_f99_binary
 
+# Error rate of 7.87% on training data and 18.92% on testing data
+
+# Variable importance
+vimportance <- as.data.frame(importance(rf_f99_binary))
+vimportance$var <- row.names(vimportance)
+
+# Clean variable names
+vimportance$var <- c("Haul Winter", "Haul Date", "Station", "Set Occurrence", "Pond")
+
+# Reorder in terms of importance
+vimportance$var <- fct_reorder(vimportance$var, vimportance$MeanDecreaseAccuracy)
+
+# Rename gini column
+colnames(vimportance)[colnames(vimportance) == "MeanDecreaseGini"] <- "Gini"
+
+# Plot variable importance
+ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) +
+  geom_segment(aes(x = var, xend = var, y = 0, yend = MeanDecreaseAccuracy), color = "skyblue") +
+  geom_vline(xintercept = 2.5, color = "red", linetype = "dashed") +
+  geom_point(aes(size = Gini), color = "blue", alpha=0.6) +
+  theme_light() +
+  coord_flip() +
+  xlab("") +
+  ylab("Mean Decrease in Accuracy") +
+  theme_pubr() +
+  theme(legend.position = "bottom")
+
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+## Partial dependence plots
+
+# Haul winter
+pd_winter <- bind_rows(partialPlot(rf_f99_waterbin,
+  pred.data = x, x.var = "haul.winter", which.class = 1,
+  plot = FALSE, n.pt = 200))
+b <- ggplot(pd_winter, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Haul Winter") +
+  ylab("Catch Probability") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Haul date
+pd_date <- bind_rows(partialPlot(rf_f99_waterbin,
+  pred.data = x, x.var = "haul.date_jul", which.class = 1,
+  plot = FALSE, n.pt = 200))
+c <- ggplot(pd_date, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Haul Date") +
+  ylab("Catch Probability") +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr()
+
+# Station
+pd_station <- bind_rows(partialPlot(rf_f99_waterbin,
+  pred.data = x, x.var = "station", which.class = 1,
+  plot = FALSE))
+pd_station$x <- fct_reorder(pd_station$x, pd_station$y, .desc = TRUE)
+d <- ggplot(pd_station, aes(x = x, y = y)) +
+  geom_bar(stat = "identity") +
+  xlab("Station") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
 
