@@ -71,6 +71,9 @@ rf_f99_binary
 
 # Error rate of 7.87% on training data and 18.92% on testing data
 
+
+## Variable importance
+
 # Variable importance
 vimportance <- as.data.frame(importance(rf_f99_binary))
 vimportance$var <- row.names(vimportance)
@@ -92,33 +95,28 @@ ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) +
   theme_light() +
   coord_flip() +
   xlab("") +
-  ylab("Mean Decrease in Accuracy") +
+  ylab("Accuracy") +
   theme_pubr() +
   theme(legend.position = "bottom")
 
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-## Partial dependence plots
+## Partial dependence plots  
+
+
+pred <- predict(rf_f99_binary, x, type = "prob")
+head(pred)
+
+
+
+
 
 # Haul winter
-pd_winter <- bind_rows(partialPlot(rf_f99_waterbin,
-  pred.data = x, x.var = "haul.winter", which.class = 1,
-  plot = FALSE, n.pt = 200))
-b <- ggplot(pd_winter, aes(x = x, y = y)) +
+pd <- bind_rows(partialPlot(rf_f99_binary,
+  pred.data = x, x.var = "haul.winter", which.class = "1",
+  plot = TRUE))
+
+
+ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Haul Winter") +
@@ -152,6 +150,12 @@ d <- ggplot(pd_station, aes(x = x, y = y)) +
   scale_y_continuous(expand = c(0, 0)) +
   theme_pubr() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+
+
+
+
 
 
 
@@ -397,7 +401,7 @@ ggsave("documents/04_Fyke99_WaterBin_PartialDependence.png", width = 10, height 
 ##### Fyke 99 - Water Temp * Freq #####
 
 # Remove unwanted columns
-fyke99_waterfreq <- select(fyke99, -c(air.temp_c, wfl_binary))
+fyke99_waterfreq <- select(fyke99, -wfl_binary)
 
 # Impute NAs using random forest proximity
 set.seed(123)
@@ -500,7 +504,7 @@ a <- ggplot(ImpData, aes(x = Var.Names, y = `%IncMSE`)) +
 pd_winter <- bind_rows(partialPlot(rf_f99_waterfreq,
   pred.data = x, x.var = "haul.winter",
   plot = FALSE, n.pt = 200))
-b <- ggplot(pd_winter, aes(x = x, y = y)) +
+ggplot(pd_winter, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Haul Winter") +
