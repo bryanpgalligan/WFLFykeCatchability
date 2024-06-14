@@ -199,9 +199,11 @@ cor_matrix$Freq <- abs(cor_matrix$Freq)
 # Remove heating.degrees_day
 fyke99 <- select(fyke99, -heating.degrees_day)
 
+# Remove air temp
+fyke99 <- select(fyke99, -air.temp_c)
 
 # Summary of Fyke 1999+ dataset
-fyke.summary <- gt_plt_summary(fyke99[4:15], "Processed Fyke Sets 1999-2024")
+fyke.summary <- gt_plt_summary(fyke99[4:14], "Processed Fyke Sets 1999-2024")
 
 # Save summary
 gtsave(fyke.summary, "documents/03_FykeSummary_CandidateVars_1999.png")
@@ -356,10 +358,12 @@ fyke19 <- select(fyke19, -min.water.temp_c)
 # Remove max water temp
 fyke19 <- select(fyke19, -max.water.temp_c)
 
+# Remove air temp
+fyke19 <- select(fyke19, -air.temp_c)
 
 
 # Summary of Fyke 2019+ dataset
-fyke.summary <- gt_plt_summary(fyke19[4:23], "Processed Fyke Sets 2019-2024")
+fyke.summary <- gt_plt_summary(fyke19[4:22], "Processed Fyke Sets 2019-2024")
 
 # Save summary
 gtsave(fyke.summary, "documents/03_FykeSummary_CandidateVars_2019.png")
