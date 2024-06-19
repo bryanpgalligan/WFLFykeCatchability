@@ -121,7 +121,7 @@ year_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
   ylab("Catch Probability") +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0.5, 1)) +
+  coord_cartesian(ylim = c(0, 1)) +
   theme_pubr()
 
 
@@ -135,16 +135,26 @@ pd <- bind_rows(partialPlot(rf_f99_binary,
 # Convert logits to probabilities
 pd$y <- exp(pd$y) / (1 + exp(pd$y))
 
-# Reorder from greatest to least
-pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
+# Make x factor
+pd$x <- as.factor(pd$x)
+
+# Save factor order
+station_order <- levels(pd$x)
+
+# Add column for colors based on x including NP, PP, or PJ
+pd$color <- c(
+  "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159",
+  "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC",
+  "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A"
+)
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
-  geom_bar(stat = "Identity") +
+station_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
+  geom_bar(stat = "Identity", fill = pd$color) +
   xlab("Station") +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0.5, 1)) +
+  coord_cartesian(ylim = c(0, 1)) +
   theme_pubr() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
@@ -163,13 +173,13 @@ pd$y <- exp(pd$y) / (1 + exp(pd$y))
 pd$x <- as.Date(pd$x, origin = "1999-11-01")
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
+date_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Haul Date") +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0.5, 1)) +
+  coord_cartesian(ylim = c(0, 1)) +
   theme_pubr()
 
 
@@ -184,13 +194,13 @@ pd <- bind_rows(partialPlot(rf_f99_binary,
 pd$y <- exp(pd$y) / (1 + exp(pd$y))
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
+set_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Set Occurrence") +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0.5, 1), xlim = c(1, 20)) +
+  coord_cartesian(ylim = c(0, 1), xlim = c(1, 20)) +
   theme_pubr()
 
 
@@ -210,13 +220,19 @@ pd$x <- as.factor(c("Ninigret", "Point Judith", "Potter"))
 # Reorder from greatest to least
 pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
 
+# Save factor order
+pond_order <- levels(pd$x)
+
+# Add column for color
+pd$color <- c("#D41159", "#0C7BDC", "#FFC20A")
+
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
-  geom_bar(stat = "Identity") +
+pond_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
+  geom_bar(stat = "Identity", fill = pd$color) +
   xlab("Pond") +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0.5, 1)) +
+  coord_cartesian(ylim = c(0, 1)) +
   theme_pubr()
 
 
@@ -336,13 +352,13 @@ pd <- bind_rows(partialPlot(rf_f99_freq,
 pd$x <- as.Date(pd$x, origin = "1999-11-01")
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
+date_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Haul Date") +
   ylab("Frequency") +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 25)) +
+  coord_cartesian(ylim = c(0, 12)) +
   theme_pubr()
 
 
@@ -372,16 +388,23 @@ pd <- bind_rows(partialPlot(rf_f99_freq,
   pred.data = x, x.var = "station",
   plot = FALSE))
 
-# Reorder from greatest to least
-pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
+# Make factor following order of station_1999_binary
+pd$x <- factor(pd$x, levels = station_order)
+
+# Add column for colors based on x including NP, PP, or PJ
+pd$color <- c(
+  "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159",
+  "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC",
+  "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A"
+)
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
-  geom_bar(stat = "Identity") +
+station_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
+  geom_bar(stat = "Identity", fill = pd$color) +
   xlab("Station") +
   ylab("Frequency") +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 25)) +
+  coord_cartesian(ylim = c(0, 12)) +
   theme_pubr() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
@@ -401,7 +424,7 @@ ggplot(pd, aes(x = x, y = y)) +
   ylab("Frequency") +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 25)) +
+  coord_cartesian(ylim = c(0, 12)) +
   theme_pubr()
 
 
@@ -415,16 +438,19 @@ pd <- bind_rows(partialPlot(rf_f99_freq,
 # Rename ponds
 pd$x <- as.factor(c("Ninigret", "Point Judith", "Potter"))
 
-# Reorder from greatest to least
-pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
+# Reorder following order of pond_1999_binary
+pd$x <- factor(pd$x, levels = pond_order)
+
+# Add column for color
+pd$color <- c("#D41159", "#0C7BDC", "#FFC20A")
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
-  geom_bar(stat = "Identity") +
+pond_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
+  geom_bar(stat = "Identity", fill = pd$color) +
   xlab("Pond") +
   ylab("Frequency") +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 25)) +
+  coord_cartesian(ylim = c(0, 12)) +
   theme_pubr()
 
 
@@ -527,7 +553,7 @@ pd$y <- exp(pd$y) / (1 + exp(pd$y))
 pd$x <- as.Date(pd$x, origin = "2019-11-01")
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
+date_2019_binary <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Haul Date") +
@@ -547,12 +573,19 @@ pd <- bind_rows(partialPlot(rf_f19_binary,
 # Convert logits to probabilities
 pd$y <- exp(pd$y) / (1 + exp(pd$y))
 
-# Reorder from greatest to least
-pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
+# Reorder following order of station_1999_binary
+pd$x <- factor(pd$x, levels = station_order)
+
+# Add column for colors based on x including NP, PP, or PJ
+pd$color <- c(
+  "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159",
+  "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC",
+  "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A"
+)
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
-  geom_bar(stat = "Identity") +
+station_2019_binary <- ggplot(pd, aes(x = x, y = y)) +
+  geom_bar(stat = "Identity", fill = pd$color) +
   xlab("Station") +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
@@ -572,7 +605,7 @@ pd <- bind_rows(partialPlot(rf_f19_binary,
 pd$y <- exp(pd$y) / (1 + exp(pd$y))
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
+set_2019_binary <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Set Occurrence") +
@@ -595,12 +628,15 @@ pd$y <- exp(pd$y) / (1 + exp(pd$y))
 # Rename ponds
 pd$x <- as.factor(c("Ninigret", "Point Judith", "Potter"))
 
-# Reorder from greatest to least
-pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
+# Reorder following order of pond_1999_binary
+pd$x <- factor(pd$x, levels = pond_order)
+
+# Add column for color
+pd$color <- c("#D41159", "#0C7BDC", "#FFC20A")
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
-  geom_bar(stat = "Identity") +
+pond_2019_binary <- ggplot(pd, aes(x = x, y = y)) +
+  geom_bar(stat = "Identity", fill = pd$color) +
   xlab("Pond") +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
@@ -701,16 +737,23 @@ pd <- bind_rows(partialPlot(rf_f19_freq,
   pred.data = x, x.var = "station",
   plot = FALSE))
 
-# Reorder from greatest to least
-pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
+# Reorder following order of station_1999_binary
+pd$x <- factor(pd$x, levels = station_order)
+
+# Add column for colors based on x including NP, PP, or PJ
+pd$color <- c(
+  "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159",
+  "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC",
+  "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A"
+)
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
-  geom_bar(stat = "Identity") +
+station_2019_freq <- ggplot(pd, aes(x = x, y = y)) +
+  geom_bar(stat = "Identity", fill = pd$color) +
   xlab("Station") +
   ylab("Frequency") +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 10)) +
+  coord_cartesian(ylim = c(0, 12)) +
   theme_pubr() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
@@ -726,13 +769,13 @@ pd <- bind_rows(partialPlot(rf_f19_freq,
 pd$x <- as.Date(pd$x, origin = "2019-11-01")
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
+date_2019_freq <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Haul Date") +
   ylab("Frequency") +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 10)) +
+  coord_cartesian(ylim = c(0, 12)) +
   theme_pubr()
 
 
@@ -744,13 +787,13 @@ pd <- bind_rows(partialPlot(rf_f19_freq,
   plot = FALSE))
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
+set_2019_freq <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Set Occurrence") +
   ylab("Frequency") +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 10)) +
+  coord_cartesian(ylim = c(0, 12)) +
   theme_pubr()
 
 
@@ -789,6 +832,22 @@ ggsave("figures/04_variable_importance.png", width = 15, height = 3, units = "in
 
 ##### Fig - Partial plots #####
 
+# Blank ggplot
+p <- ggplot() + theme_void()
+
+# Combine partial plots
+ggarrange(
+  date_1999_binary, date_1999_freq, date_2019_binary, date_2019_freq,
+  station_1999_binary, station_1999_freq, station_2019_binary, station_2019_freq,
+  set_1999_binary, p, set_2019_binary, set_2019_freq,
+  pond_1999_binary, pond_1999_freq, pond_2019_binary, p,
+  ncol = 4, nrow = 4
+)
+
+# Save plot
+ggsave("figures/04_annual_variables.png", width = 15, height = 15, units = "in", bg = "white")
+
+
 
 
 ##### Fig - Year #####
@@ -813,10 +872,12 @@ year_2019_freq <- ggMarginal(year_2019_freq, type = "density", size = 5, fill = 
 # Combine plots
 ggarrange(year_1999_binary, year_1999_freq, year_2019_freq,
   ncol = 3, nrow = 1,
+  widths = c(0.9, 1, 1),
   labels = "AUTO")
 
 # Save plot
 ggsave("figures/04_haul_winter.png", width = 10, height = 3, units = "in", bg = "white")
+
 
 
 
