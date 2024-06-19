@@ -694,6 +694,17 @@ vars_2019_freq <- ggplot(vimportance, aes(x = var, y = `%IncMSE`)) +
 
 
 
+##### Fig - Variable importance #####
+
+# Combine variable importance plots
+ggarrange(vars_1999_binary, vars_1999_freq, vars_2019_binary, vars_2019_freq,
+  ncol = 4, nrow = 1,
+  labels = "AUTO", label.x = c(0.05, 0, 0.05, 0.05))
+
+# Save plot
+ggsave("figures/04_variable_importance.png", width = 15, height = 3, units = "in")
+
+
 
 
 
