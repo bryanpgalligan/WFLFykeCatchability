@@ -94,7 +94,7 @@ vars_1999_binary <- ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) 
   theme_light() +
   coord_flip() +
   xlab("") +
-  ylab("Accuracy") +
+  ylab("Mean Decrease in Accuracy") +
   scale_size_continuous(breaks = scales::pretty_breaks(n = 3)) +
   theme_pubr() +
   theme(legend.position = "bottom")
@@ -431,6 +431,273 @@ ggplot(pd, aes(x = x, y = y)) +
 
 
 ##### 2019 data binary response #####
+
+# Remove freq response column
+fyke19_binary <- select(fyke19, -wfl_freq)
+
+# Impute NAs using random forest proximity
+set.seed(45612)
+fyke19_binary <- rfImpute(wfl_binary ~ ., data = fyke19_binary)
+
+# Select variables using VSURF
+set.seed(45612)
+vfyke19_binary <- VSURF(wfl_binary ~ ., data = fyke19_binary)
+
+summary(vfyke19_binary)
+
+plot(vfyke19_binary)
+
+# Subset data for random forest
+fyke19_binary <- select(fyke19_binary, c("wfl_binary",
+  "haul.date_jul", "station", "pond", "set.occurrence_yr"))
+
+# Bootstrap sample for model training
+set.seed(45612)
+fyke19_binary_train <- slice_sample(fyke19_binary, prop = 1, replace = TRUE)
+
+# Out of bag sample for testing
+fyke19_binary_test <- setdiff(fyke19_binary, fyke19_binary_train)
+
+# Data for RFM
+x <- select(fyke19_binary_train, -wfl_binary)
+y <- fyke19_binary_train$wfl_binary
+xtest <- select(fyke19_binary_test, -wfl_binary)
+ytest <- fyke19_binary_test$wfl_binary
+
+# Tune RFM for optimal mtry
+set.seed(45612)
+tuneRF(x = x, y = y)
+
+# mtry 4 is optimum based on OOB error
+
+# Random forest model
+set.seed(45612)
+rf_f19_binary <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 4,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+# Plot model
+plot(rf_f19_binary)
+
+# Summary
+rf_f19_binary
+
+# Error rate of 8.66% on training data and 28.1% on testing data
+
+
+## Variable importance
+
+# Variable importance
+vimportance <- as.data.frame(importance(rf_f19_binary))
+
+# Clean variable names
+vimportance$var <- c("Haul Date", "Station", "Pond", "Set Occurrence")
+
+# Reorder in terms of importance
+vimportance$var <- fct_reorder(vimportance$var, vimportance$MeanDecreaseAccuracy)
+
+# Rename gini column
+colnames(vimportance)[colnames(vimportance) == "MeanDecreaseGini"] <- "Gini"
+
+# Plot variable importance
+vars_2019_binary <- ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) +
+  geom_segment(aes(x = var, xend = var, y = 0, yend = MeanDecreaseAccuracy), color = "skyblue") +
+  geom_point(aes(size = Gini), color = "blue", alpha=0.6) +
+  theme_light() +
+  coord_flip() +
+  xlab("") +
+  ylab("Mean Decrease in Accuracy") +
+  theme_pubr() +
+  theme(legend.position = "bottom")
+
+
+## Partial dependence plots
+
+# Haul date
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f19_binary,
+  pred.data = x, x.var = "haul.date_jul", which.class = "1",
+  plot = FALSE))
+
+# Convert logits to probabilities
+pd$y <- exp(pd$y) / (1 + exp(pd$y))
+
+# Convert x to date class as Julian date with 1 = November 1
+pd$x <- as.Date(pd$x, origin = "2019-11-01")
+
+# Plot partial dependence
+ggplot(pd, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Haul Date") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 1)) +
+  theme_pubr()
+
+
+# Station
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f19_binary,
+  pred.data = x, x.var = "station", which.class = "1",
+  plot = FALSE))
+
+# Convert logits to probabilities
+pd$y <- exp(pd$y) / (1 + exp(pd$y))
+
+# Reorder from greatest to least
+pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
+
+# Plot partial dependence
+ggplot(pd, aes(x = x, y = y)) +
+  geom_bar(stat = "Identity") +
+  xlab("Station") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 1)) +
+  theme_pubr() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+# Set occurrence
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f19_binary,
+  pred.data = x, x.var = "set.occurrence_yr", which.class = "1",
+  plot = FALSE))
+
+# Convert logits to probabilities
+pd$y <- exp(pd$y) / (1 + exp(pd$y))
+
+# Plot partial dependence
+ggplot(pd, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Set Occurrence") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 1)) +
+  theme_pubr()
+
+
+# Pond
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f19_binary,
+  pred.data = x, x.var = "pond", which.class = "1",
+  plot = FALSE))
+
+# Convert logits to probabilities
+pd$y <- exp(pd$y) / (1 + exp(pd$y))
+
+# Rename ponds
+pd$x <- as.factor(c("Ninigret", "Point Judith", "Potter"))
+
+# Reorder from greatest to least
+pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
+
+# Plot partial dependence
+ggplot(pd, aes(x = x, y = y)) +
+  geom_bar(stat = "Identity") +
+  xlab("Pond") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 1)) +
+  theme_pubr()
+
+
+
+
+##### 2019 data freq response #####
+
+# Remove binary response column
+fyke19_freq <- select(fyke19, -wfl_binary)
+
+# Impute NAs using random forest proximity
+set.seed(45612)
+fyke19_freq <- rfImpute(wfl_freq ~ ., data = fyke19_freq)
+
+# Select variables using VSURF
+set.seed(45612)
+vfyke19_freq <- VSURF(wfl_freq ~ ., data = fyke19_freq)
+
+summary(vfyke19_freq)
+
+plot(vfyke19_freq)
+
+# Subset data for random forest
+fyke19_freq <- select(fyke19_freq, c("wfl_freq",
+  "haul.date_jul", "station", "set.occurrence_yr", "haul.winter"))
+
+# Bootstrap sample for model training
+set.seed(45612)
+fyke19_freq_train <- slice_sample(fyke19_freq, prop = 1, replace = TRUE)
+
+# Out of bag sample for testing
+fyke19_freq_test <- setdiff(fyke19_freq, fyke19_freq_train)
+
+# Data for RFM
+x <- select(fyke19_freq_train, -wfl_freq)
+y <- fyke19_freq_train$wfl_freq
+xtest <- select(fyke19_freq_test, -wfl_freq)
+ytest <- fyke19_freq_test$wfl_freq
+
+# Tune RFM for optimal mtry
+set.seed(45612)
+tuneRF(x = x, y = y)
+
+# mtry 4 is optimum based on OOB error
+
+# Random forest model
+set.seed(45612)
+rf_f19_freq <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 4,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+# Plot model
+plot(rf_f19_freq)
+
+# Summary
+rf_f19_freq
+
+# 62.2% of variance explained on training data and 31.0% on testing data
+
+
+## Variable importance
+
+# Variable importance
+vimportance <- as.data.frame(importance(rf_f19_freq))
+
+# Clean variable names
+vimportance$var <- c("Haul Date", "Station", "Set Occurrence", "Haul Winter")
+
+# Reorder in terms of importance
+vimportance$var <- fct_reorder(vimportance$var, vimportance$`%IncMSE`)
+
+# Rename Node Purity column
+colnames(vimportance)[colnames(vimportance) == "IncNodePurity"] <- "Node Purity"
+
+# Plot variable importance
+vars_2019_freq <- ggplot(vimportance, aes(x = var, y = `%IncMSE`)) +
+  geom_segment(aes(x = var, xend = var, y = 0, yend = `%IncMSE`), color = "skyblue") +
+  geom_point(aes(size = `Node Purity`), color = "blue", alpha=0.6) +
+  theme_light() +
+  coord_flip() +
+  xlab("") +
+  ylab("% Increase in MSE") +
+  scale_size_continuous(breaks = scales::pretty_breaks(n = 2)) +
+  theme_pubr() +
+  theme(legend.position = "bottom")
+
+
+
+
+
+
+
+
 
 
 
