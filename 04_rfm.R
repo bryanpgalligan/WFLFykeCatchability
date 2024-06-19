@@ -114,7 +114,7 @@ pd <- bind_rows(partialPlot(rf_f99_binary,
 pd$y <- exp(pd$y) / (1 + exp(pd$y))
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
+year_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Haul Winter") +
@@ -314,7 +314,7 @@ pd <- bind_rows(partialPlot(rf_f99_freq,
   plot = FALSE))
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
+year_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Haul Winter") +
@@ -354,14 +354,14 @@ pd <- bind_rows(partialPlot(rf_f99_freq,
   plot = FALSE))
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
+water_temp <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
-  xlab("Water Temp (C)") +
+  xlab("Water Temp (°C)") +
   ylab("Frequency") +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 25)) +
+  coord_cartesian(ylim = c(0, 10)) +
   theme_pubr()
 
 
@@ -692,6 +692,86 @@ vars_2019_freq <- ggplot(vimportance, aes(x = var, y = `%IncMSE`)) +
   theme(legend.position = "bottom")
 
 
+## Partial dependence plots
+
+# Station
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f19_freq,
+  pred.data = x, x.var = "station",
+  plot = FALSE))
+
+# Reorder from greatest to least
+pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
+
+# Plot partial dependence
+ggplot(pd, aes(x = x, y = y)) +
+  geom_bar(stat = "Identity") +
+  xlab("Station") +
+  ylab("Frequency") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 10)) +
+  theme_pubr() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+# Haul date
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f19_freq,
+  pred.data = x, x.var = "haul.date_jul",
+  plot = FALSE))
+
+# Convert x to date class as Julian date with 1 = November 1
+pd$x <- as.Date(pd$x, origin = "2019-11-01")
+
+# Plot partial dependence
+ggplot(pd, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Haul Date") +
+  ylab("Frequency") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 10)) +
+  theme_pubr()
+
+
+# Set occurrence
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f19_freq,
+  pred.data = x, x.var = "set.occurrence_yr",
+  plot = FALSE))
+
+# Plot partial dependence
+ggplot(pd, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Set Occurrence") +
+  ylab("Frequency") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 10)) +
+  theme_pubr()
+
+
+# Haul winter
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f19_freq,
+  pred.data = x, x.var = "haul.winter",
+  plot = FALSE))
+
+# Plot partial dependence
+year_2019_freq <- ggplot(pd, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Haul Winter") +
+  ylab("Frequency") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 25)) +
+  theme_pubr()
+
+
 
 
 ##### Fig - Variable importance #####
@@ -707,9 +787,48 @@ ggsave("figures/04_variable_importance.png", width = 15, height = 3, units = "in
 
 
 
+##### Fig - Partial plots #####
 
 
 
+##### Fig - Year #####
+
+# Add marginal distributions
+
+# 1999 binary
+year_1999_binary <- year_1999_binary +
+  geom_point(data = fyke99_binary, aes(x = haul.winter, y = as.numeric(wfl_binary)), alpha = 0)
+year_1999_binary <- ggMarginal(year_1999_binary, type = "density", margins = "x", size = 5, fill = "skyblue")
+
+# 1999 freq
+year_1999_freq <- year_1999_freq +
+  geom_point(data = fyke99_freq, aes(x = haul.winter, y = wfl_freq), alpha = 0)
+year_1999_freq <- ggMarginal(year_1999_freq, type = "density", size = 5, fill = "skyblue")
+
+# 2019 freq
+year_2019_freq <- year_2019_freq +
+  geom_point(data = fyke19_freq, aes(x = haul.winter, y = wfl_freq), alpha = 0)
+year_2019_freq <- ggMarginal(year_2019_freq, type = "density", size = 5, fill = "skyblue")
+
+# Combine plots
+ggarrange(year_1999_binary, year_1999_freq, year_2019_freq,
+  ncol = 3, nrow = 1,
+  labels = "AUTO")
+
+# Save plot
+ggsave("figures/04_haul_winter.png", width = 10, height = 3, units = "in", bg = "white")
+
+
+
+##### Fig - Water temp #####
+
+water_temp <- water_temp +
+  geom_point(data = fyke99_freq, aes(x = water.temp_c, y = wfl_freq), alpha = 0)
+
+water_temp <- ggMarginal(water_temp, type = "density", size = 5, fill = "skyblue")
+
+# Save plot
+save_plot("figures/04_water_temp.png", plot = water_temp, base_width = 3.5, base_height = 3)
 
 
 
