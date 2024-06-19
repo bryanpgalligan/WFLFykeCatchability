@@ -42,7 +42,6 @@ set.seed(45612)
 fyke99_binary_train <- slice_sample(fyke99_binary, prop = 1, replace = TRUE)
 
 # Out of bag sample for testing
-set.seed(45612)
 fyke99_binary_test <- setdiff(fyke99_binary, fyke99_binary_train)
 
 # Data for RFM
@@ -88,7 +87,7 @@ vimportance$var <- fct_reorder(vimportance$var, vimportance$MeanDecreaseAccuracy
 colnames(vimportance)[colnames(vimportance) == "MeanDecreaseGini"] <- "Gini"
 
 # Plot variable importance
-ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) +
+vars_1999_binary <- ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) +
   geom_segment(aes(x = var, xend = var, y = 0, yend = MeanDecreaseAccuracy), color = "skyblue") +
   geom_vline(xintercept = 2.5, color = "red", linetype = "dashed") +
   geom_point(aes(size = Gini), color = "blue", alpha=0.6) +
@@ -103,19 +102,17 @@ ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) +
 ## Partial dependence plots  
 
 
-pred <- predict(rf_f99_binary, x, type = "prob")
-head(pred)
-
-
-
-
-
 # Haul winter
+
+# Calculate partial dependence
 pd <- bind_rows(partialPlot(rf_f99_binary,
   pred.data = x, x.var = "haul.winter", which.class = "1",
-  plot = TRUE))
+  plot = FALSE))
 
+# Convert logits to probabilities
+pd$y <- exp(pd$y) / (1 + exp(pd$y))
 
+# Plot partial dependence
 ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
@@ -123,35 +120,103 @@ ggplot(pd, aes(x = x, y = y)) +
   ylab("Catch Probability") +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0.5, 1)) +
   theme_pubr()
 
-# Haul date
-pd_date <- bind_rows(partialPlot(rf_f99_waterbin,
-  pred.data = x, x.var = "haul.date_jul", which.class = 1,
-  plot = FALSE, n.pt = 200))
-c <- ggplot(pd_date, aes(x = x, y = y)) +
-  geom_line() +
-  geom_smooth(color = "blue") +
-  xlab("Haul Date") +
-  ylab("Catch Probability") +
-  scale_x_continuous(expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) +
-  theme_pubr()
 
 # Station
-pd_station <- bind_rows(partialPlot(rf_f99_waterbin,
-  pred.data = x, x.var = "station", which.class = 1,
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f99_binary,
+  pred.data = x, x.var = "station", which.class = "1",
   plot = FALSE))
-pd_station$x <- fct_reorder(pd_station$x, pd_station$y, .desc = TRUE)
-d <- ggplot(pd_station, aes(x = x, y = y)) +
-  geom_bar(stat = "identity") +
+
+# Convert logits to probabilities
+pd$y <- exp(pd$y) / (1 + exp(pd$y))
+
+# Reorder from greatest to least
+pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
+
+# Plot partial dependence
+ggplot(pd, aes(x = x, y = y)) +
+  geom_bar(stat = "Identity") +
   xlab("Station") +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0.5, 1)) +
   theme_pubr() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
+# Haul date
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f99_binary,
+  pred.data = x, x.var = "haul.date_jul", which.class = "1",
+  plot = FALSE))
+
+# Convert logits to probabilities
+pd$y <- exp(pd$y) / (1 + exp(pd$y))
+
+# Convert x to date class as Julian date with 1 = November 1
+pd$x <- as.Date(pd$x, origin = "1999-11-01")
+
+# Plot partial dependence
+ggplot(pd, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Haul Date") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0.5, 1)) +
+  theme_pubr()
+
+
+# Set occurrence
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f99_binary,
+  pred.data = x, x.var = "set.occurrence_yr", which.class = "1",
+  plot = FALSE))
+
+# Convert logits to probabilities
+pd$y <- exp(pd$y) / (1 + exp(pd$y))
+
+# Plot partial dependence
+ggplot(pd, aes(x = x, y = y)) +
+  geom_line() +
+  geom_smooth(color = "blue") +
+  xlab("Set Occurrence") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0.5, 1), xlim = c(1, 20)) +
+  theme_pubr()
+
+
+# Pond
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f99_binary,
+  pred.data = x, x.var = "pond", which.class = "1",
+  plot = FALSE))
+
+# Convert logits to probabilities
+pd$y <- exp(pd$y) / (1 + exp(pd$y))
+
+# Rename ponds
+pd$x <- as.factor(c("Ninigret", "Point Judith", "Potter"))
+
+# Reorder from greatest to least
+pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
+
+# Plot partial dependence
+ggplot(pd, aes(x = x, y = y)) +
+  geom_bar(stat = "Identity") +
+  xlab("Pond") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0.5, 1)) +
+  theme_pubr()
 
 
 
@@ -159,8 +224,11 @@ d <- ggplot(pd_station, aes(x = x, y = y)) +
 
 
 
-##### WIP - VSURF on 1999 data w/ freq response #####
 
+
+
+
+##### 1999 data freq response #####
 
 # Remove binary response column
 fyke99_freq <- select(fyke99, -wfl_binary)
