@@ -217,12 +217,6 @@ pd$y <- exp(pd$y) / (1 + exp(pd$y))
 # Rename ponds
 pd$x <- as.factor(c("Ninigret", "Point Judith", "Potter"))
 
-# Reorder from greatest to least
-pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
-
-# Save factor order
-pond_order <- levels(pd$x)
-
 # Add column for color
 pd$color <- c("#D41159", "#0C7BDC", "#FFC20A")
 
@@ -438,9 +432,6 @@ pd <- bind_rows(partialPlot(rf_f99_freq,
 # Rename ponds
 pd$x <- as.factor(c("Ninigret", "Point Judith", "Potter"))
 
-# Reorder following order of pond_1999_binary
-pd$x <- factor(pd$x, levels = pond_order)
-
 # Add column for color
 pd$color <- c("#D41159", "#0C7BDC", "#FFC20A")
 
@@ -627,9 +618,6 @@ pd$y <- exp(pd$y) / (1 + exp(pd$y))
 
 # Rename ponds
 pd$x <- as.factor(c("Ninigret", "Point Judith", "Potter"))
-
-# Reorder following order of pond_1999_binary
-pd$x <- factor(pd$x, levels = pond_order)
 
 # Add column for color
 pd$color <- c("#D41159", "#0C7BDC", "#FFC20A")
