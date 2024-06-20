@@ -180,7 +180,10 @@ date_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 1)) +
-  theme_pubr()
+  ggtitle("All Years Classification") +
+  theme_pubr() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
 
 
 # Set occurrence
@@ -353,7 +356,10 @@ date_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
   ylab("Frequency") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 12)) +
-  theme_pubr()
+  ggtitle("All Years Regression") +
+  theme_pubr() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
 
 
 # Water temp
@@ -551,7 +557,10 @@ date_2019_binary <- ggplot(pd, aes(x = x, y = y)) +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 1)) +
-  theme_pubr()
+  ggtitle("Five-Year Classification") +
+  theme_pubr() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
 
 
 # Station
@@ -764,7 +773,10 @@ date_2019_freq <- ggplot(pd, aes(x = x, y = y)) +
   ylab("Frequency") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 12)) +
-  theme_pubr()
+  ggtitle("Five-Year Regression") +
+  theme_pubr() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+
 
 
 # Set occurrence
