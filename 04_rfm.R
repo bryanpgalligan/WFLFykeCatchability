@@ -882,3 +882,115 @@ save_plot("figures/04_water_temp.png", plot = water_temp, base_width = 3.5, base
 
 
 
+##### Fig - Environmental Variables #####
+
+## 1999 variables
+
+# Water temp
+water_temp_1999 <- ggplot(fyke99, aes(x = 1, y = water.temp_c)) +
+  geom_violin(fill = "#0C7BDC", alpha = 0.5,
+    draw_quantiles = c(0.25, 0.75), linetype = "dashed") +
+  geom_violin(fill = "transparent", draw_quantiles = 0.5) +
+  xlab("") +
+  ylab("Water Temp (°C)") +
+  theme_pubr() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+# Salinity
+salinity_1999 <- ggplot(fyke99, aes(x = 1, y = salinity_ppt)) +
+  geom_violin(fill = "#FFC107", alpha = 0.5,
+    draw_quantiles = c(0.25, 0.75), linetype = "dashed") +
+  geom_violin(fill = "transparent", draw_quantiles = 0.5) +
+  xlab("") +
+  ylab("Salinity (PSU)") +
+  theme_pubr() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+# Wind
+wind_1999 <- ggplot(fyke99, aes(x = 1, y = wind_m.s)) +
+  geom_violin(fill = "#D41159", alpha = 0.5,
+    draw_quantiles = c(0.25, 0.75), linetype = "dashed") +
+  geom_violin(fill = "transparent", draw_quantiles = 0.5) +
+  xlab("") +
+  ylab("Wind Speed (m/s)") +
+  theme_pubr() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+
+## 2019 variables
+
+# Water temp range
+water_range_2019 <- ggplot(fyke19, aes(x = 1, y = range.water.temp_c)) +
+  geom_violin(fill = "#0C7BDC", alpha = 0.5,
+    draw_quantiles = c(0.25, 0.75), linetype = "dashed") +
+  geom_violin(fill = "transparent", draw_quantiles = 0.5) +
+  xlab("") +
+  ylab("Water Temp Range (°C)") +
+  theme_pubr() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+# Water temp skewness
+water_skewness_2019 <- ggplot(fyke19, aes(x = 1, y = skewness.water.temp)) +
+  geom_violin(fill = "#0C7BDC", alpha = 0.5,
+    draw_quantiles = c(0.25, 0.75), linetype = "dashed") +
+  geom_violin(fill = "transparent", draw_quantiles = 0.5) +
+  xlab("") +
+  ylab("Water Temp Skewness") +
+  theme_pubr() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+# Water temp kurtosis
+water_kurtosis_2019 <- ggplot(fyke19, aes(x = 1, y = kurtosis.water.temp)) +
+  geom_violin(fill = "#0C7BDC", alpha = 0.5,
+    draw_quantiles = c(0.25, 0.75), linetype = "dashed") +
+  geom_violin(fill = "transparent", draw_quantiles = 0.5) +
+  xlab("") +
+  ylab("Water Temp Kurtosis") +
+  theme_pubr() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+# Salinity rate of change
+salinity_change_2019 <- ggplot(fyke19, aes(x = 1, y = delta.salinity_ppt.day)) +
+  geom_violin(fill = "#FFC107", alpha = 0.5,
+    draw_quantiles = c(0.25, 0.75), linetype = "dashed") +
+  geom_violin(fill = "transparent", draw_quantiles = 0.5) +
+  xlab("") +
+  ylab("Salinity Rate of Change (PSU/day)") +
+  theme_pubr() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+# Dissolved oxygen
+do_2019 <- ggplot(fyke19, aes(x = 1, y = do_mg.l)) +
+  geom_violin(fill = "#004D40", alpha = 0.5,
+    draw_quantiles = c(0.25, 0.75), linetype = "dashed") +
+  geom_violin(fill = "transparent", draw_quantiles = 0.5) +
+  xlab("") +
+  ylab("Dissolved Oxygen (mg/L)") +
+  theme_pubr() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+# Dissolved oxygen rate of change
+do_change_2019 <- ggplot(fyke19, aes(x = 1, y = delta.do_mg.l.day)) +
+  geom_violin(fill = "#004D40", alpha = 0.5,
+    draw_quantiles = c(0.25, 0.75), linetype = "dashed") +
+  geom_violin(fill = "transparent", draw_quantiles = 0.5) +
+  xlab("") +
+  ylab("DO Rate of Change (mg/L/day)") +
+  theme_pubr() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+## Combine plots
+
+# Blank plot
+p <- ggplot() + theme_void()
+
+# Combine plots
+ggarrange(water_temp_1999, salinity_1999, wind_1999, p, p, p,
+  water_range_2019, water_skewness_2019, water_kurtosis_2019,
+  salinity_change_2019, do_2019, do_change_2019,
+  labels = c("A", "", "", "", "", "",
+    "B", "", "", "", "", ""),
+  ncol = 6, nrow = 2)
+
+# Save plot
+ggsave("figures/04_environmental_variables.png", width = 15, height = 6, units = "in", bg = "white")
