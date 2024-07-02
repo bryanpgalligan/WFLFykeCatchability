@@ -50,7 +50,7 @@ gt_plt_summary(fyke99[52:53])
 ## 854/1055 = 80.95% are haul/set average
 ## 145/1055 = 13.74% are haul temp
 ## 34/1055 = 3.22% are set temp
-## 22/1055 = 2.09% are mean temp from in situ logger
+## 22/1055 = 2.09% are missing
 
 
 ## Salinity
@@ -79,8 +79,8 @@ gt_plt_summary(fyke99[54:55])
 
 # 9.1% are missing (1055 total sets)
 # 800/1055 = 75.83% are hs.avg.salinity_ppt
-# 128/1055 = 12.13% are set.salinity_ppt
 # 127/1055 = 12.04% are haul.salinity_ppt
+# 32/1055 = 3.03% are set.salinity_ppt
 
 
 ## DO
