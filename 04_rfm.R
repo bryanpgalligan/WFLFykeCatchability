@@ -99,6 +99,41 @@ vars_1999_binary <- ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) 
   theme_pubr() +
   theme(legend.position = "bottom")
 
+## Make a poster version of the plot
+
+# Rename variables
+vimportance$var <- c("Year", "Day", "Station", "Set No.", "Pond")
+vimportance$var <- fct_reorder(vimportance$var, vimportance$MeanDecreaseAccuracy)
+
+# Load extra fonts
+loadfonts()
+
+##### WIP BELOW HERE #####
+
+# Make plot
+ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) +
+  geom_segment(aes(x = var, xend = var, y = 0, yend = MeanDecreaseAccuracy),
+    color = "skyblue", linewidth = 1.5) +
+  geom_point(aes(size = Gini), color = "blue", alpha=0.6, size = 10) +
+  theme_light() +
+  coord_flip() +
+  labs(x = "", y = "Mean Decrease in Accuracy", title = "Variable Importance") +
+  scale_size_continuous(breaks = scales::pretty_breaks(n = 3)) +
+  theme_pubr() +
+  theme(legend.position = "bottom",
+    title = element_text(family = "Arial", size = 48),
+    axis.text = element_text(family = "Arial", size = 48),
+    axis.title = element_text(family = "Arial", size = 48),
+    legend.title = element_text(family = "Arial", size = 48),
+    legend.text = element_text(family = "Arial", size = 48),
+    axis.line = element_line(color = "black", linewidth = 1.5),
+    axis.ticks.x = element_line(color = "black", linewidth = 1.5),
+    axis.ticks.length = unit(0.2, "in"),
+    axis.ticks.y = element_blank()
+    )
+
+# Save plot
+ggsave("figures/04_VariableImportance_AFS.png", width = 10.28, height = 7.46, units = "in")
 
 ## Partial dependence plots  
 

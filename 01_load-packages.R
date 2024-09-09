@@ -8,6 +8,7 @@
 library(corrplot)
 library(cowplot)
 library(dplyr)
+library(extrafont)
 library(forcats)
 library(ggExtra)
 library(ggplot2)
@@ -26,3 +27,4 @@ library(svglite)
 library(tidyr)
 library(VSURF)
 library(webshot2)
+
