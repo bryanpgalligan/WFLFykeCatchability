@@ -117,15 +117,14 @@ ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) +
   geom_point(aes(size = Gini), color = "blue", alpha=0.6, size = 10) +
   theme_light() +
   coord_flip() +
-  labs(x = "", y = "Mean Decrease in Accuracy", title = "Variable Importance") +
+  labs(x = "", y = "Variable Importance\n(% Decrease in Accuracy)", title = "") +
   scale_size_continuous(breaks = scales::pretty_breaks(n = 3)) +
   theme_pubr() +
   theme(legend.position = "bottom",
-    title = element_text(family = "Arial", size = 48),
-    axis.text = element_text(family = "Arial", size = 48),
-    axis.title = element_text(family = "Arial", size = 48),
-    legend.title = element_text(family = "Arial", size = 48),
-    legend.text = element_text(family = "Arial", size = 48),
+    axis.text = element_text(family = "Arial", size = 40),
+    axis.title = element_text(family = "Arial", size = 40),
+    legend.title = element_text(family = "Arial", size = 40),
+    legend.text = element_text(family = "Arial", size = 40),
     axis.line = element_line(color = "black", linewidth = 1.5),
     axis.ticks.x = element_line(color = "black", linewidth = 1.5),
     axis.ticks.length = unit(0.2, "in"),
