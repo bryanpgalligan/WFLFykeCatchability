@@ -108,8 +108,6 @@ vimportance$var <- fct_reorder(vimportance$var, vimportance$MeanDecreaseAccuracy
 # Load extra fonts
 loadfonts()
 
-##### WIP BELOW HERE #####
-
 # Make plot
 ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) +
   geom_segment(aes(x = var, xend = var, y = 0, yend = MeanDecreaseAccuracy),
@@ -218,7 +216,26 @@ date_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
   theme_pubr() +
   theme(plot.title = element_text(hjust = 0.5, face = "bold"))
 
+# Make an AFS version of this plot
+ggplot(pd, aes(x = x, y = y)) +
+  geom_line(linewidth = 1.5) +
+  geom_smooth(color = "blue", linewidth = 2) +
+  xlab("") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 1)) +
+  theme_pubr() +
+  theme(
+    axis.text = element_text(family = "Arial", size = 40),
+    axis.title = element_text(family = "Arial", size = 40),
+    axis.line = element_line(color = "black", linewidth = 1.5),
+    axis.ticks = element_line(color = "black", linewidth = 1.5),
+    axis.ticks.length = unit(0.2, "in"),
+    plot.margin = unit(c(0.5, 0, 0, 0.1), "in")
+    )
 
+# Save plot
+ggsave("figures/04_HaulDate_AFS.png", width = 10.28, height = 7.46, units = "in")
 
 # Set occurrence
 
