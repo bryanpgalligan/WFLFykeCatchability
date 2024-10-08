@@ -377,6 +377,9 @@ pd <- bind_rows(partialPlot(rf_f99_freq,
   pred.data = x, x.var = "haul.winter",
   plot = FALSE))
 
+# Save data for later
+pd_year <- pd
+
 # Plot partial dependence
 year_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
@@ -1057,3 +1060,46 @@ ggarrange(water_temp_1999, salinity_1999, wind_1999, p, p, p,
 
 # Save plot
 ggsave("figures/04_environmental_variables.png", width = 15, height = 6, units = "in", bg = "white")
+
+
+
+
+##### Fig - Abundance Index #####
+
+# Make a non-corrected annual abundance index based on mean freq for Ninegret pond
+abundance <- fyke99 %>%
+  filter(pond == "NP") %>%
+  group_by(haul.winter) %>%
+  summarise(NP_mean_freq = mean(wfl_freq, na.rm = TRUE))
+
+# Rename haul winter to year
+colnames(abundance)[colnames(abundance) == "haul.winter"] <- "year"
+
+
+##### WIP - Calculate pd on year FOR EACH POND #####
+
+# Rename partial dependence predictions as year and pred_freq
+colnames(pd_year)[colnames(pd_year) == "x"] <- "year"
+colnames(pd_year)[colnames(pd_year) == "y"] <- "pred_freq"
+
+# Merge data
+abundance <- left_join(abundance, pd_year, by = "year")
+
+# Plot data
+ggplot(abundance, aes(x = year)) +
+  geom_line(aes(y = mean_freq, linetype = "Mean"), color = "black") +
+  geom_line(aes(y = pred_freq, color = "Predicted"), size = 1) +
+  xlab("Year") +
+  ylab("Abundance Index (no. per haul)") +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr() +
+  theme(legend.position = c(0.85, 0.85),
+        legend.spacing.y = unit(0.1, 'cm'),  # Reduce space between legend entries
+        legend.key.height = unit(0.4, 'cm'),
+        plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")) +
+  scale_linetype_manual(values = c("Mean" = "dashed"), guide = guide_legend(title = NULL)) +
+  scale_color_manual(values = c("Predicted" = "blue"), guide = guide_legend(title = NULL))
+
+# Save plot
+ggsave("figures/04_abundance_index.png", width = 6, height = 4, units = "in", bg = "white")
+
