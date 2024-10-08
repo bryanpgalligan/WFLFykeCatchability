@@ -391,9 +391,29 @@ year_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
   coord_cartesian(ylim = c(0, 25)) +
   theme_pubr()
 
-# Haul winter interacting with pond
 
 ##### WIP #####
+
+# Haul winter interacting with pond
+
+# Make haul winter an integer
+x$haul.winter <- as.integer(x$haul.winter)
+
+# Subset x for each pond
+x_np <- x %>% filter(pond == "NP")
+x_pp <- x %>% filter(pond == "PP")
+x_pj <- x %>% filter(pond == "PJ")
+
+# Calculate partial dependence for each pond
+pd_year_np <- bind_rows(partialPlot(rf_f99_freq,
+  pred.data = x_np, x.var = "haul.winter", n.pt = 13,
+  plot = FALSE))
+pd_year_pp <- bind_rows(partialPlot(rf_f99_freq,
+  pred.data = x_pp, x.var = "haul.winter", n.pt = 26,
+  plot = FALSE))
+pd_year_pj <- bind_rows(partialPlot(rf_f99_freq,
+  pred.data = x_pj, x.var = "haul.winter", n.pt = 25,
+  plot = FALSE))
 
 
 # Haul date
@@ -1071,16 +1091,45 @@ ggsave("figures/04_environmental_variables.png", width = 15, height = 6, units =
 ##### Fig - Abundance Index #####
 
 # Make a non-corrected annual abundance index based on mean freq for Ninegret pond
-abundance <- fyke99 %>%
+abundance_np <- fyke99 %>%
   filter(pond == "NP") %>%
   group_by(haul.winter) %>%
-  summarise(NP_mean_freq = mean(wfl_freq, na.rm = TRUE))
+  summarise(np_mean_freq = mean(wfl_freq, na.rm = TRUE))
 
 # Rename haul winter to year
-colnames(abundance)[colnames(abundance) == "haul.winter"] <- "year"
+colnames(abundance_np)[colnames(abundance_np) == "haul.winter"] <- "year"
 
+# Non-corrected annual abundance for Potter Pond
+abundance_pp <- fyke99 %>%
+  filter(pond == "PP") %>%
+  group_by(haul.winter) %>%
+  summarise(pp_mean_freq = mean(wfl_freq, na.rm = TRUE))
 
-##### WIP - Calculate pd on year FOR EACH POND #####
+# Rename haul winter to year
+colnames(abundance_pp)[colnames(abundance_pp) == "haul.winter"] <- "year"
+
+# Non-corrected annual abundance for PJ Pond
+abundance_pj <- fyke99 %>%
+  filter(pond == "PJ") %>%
+  group_by(haul.winter) %>%
+  summarise(pj_mean_freq = mean(wfl_freq, na.rm = TRUE))
+
+# Rename haul winter to year
+colnames(abundance_pj)[colnames(abundance_pj) == "haul.winter"] <- "year"
+
+# Rename partial dependence columns
+colnames(pd_year_np) <- c("year", "np_pred_freq")
+colnames(pd_year_pp) <- c("year", "pp_pred_freq")
+colnames(pd_year_pj) <- c("year", "pj_pred_freq")
+
+# Merge data
+abundance <- left_join(abundance_pp, pd_year_pp, by = "year")
+abundance <- left_join(abundance, abundance_pj, by = "year")
+abundance <- left_join(abundance, pd_year_pj, by = "year")
+abundance <- left_join(abundance, abundance_np, by = "year")
+abundance <- left_join(abundance, pd_year_np, by = "year")
+
+##### WIP - next is to plot the merged data #####
 
 
 
@@ -1090,6 +1139,9 @@ colnames(pd_year)[colnames(pd_year) == "y"] <- "pred_freq"
 
 # Merge data
 abundance <- left_join(abundance, pd_year, by = "year")
+
+
+
 
 # Plot data
 ggplot(abundance, aes(x = year)) +
