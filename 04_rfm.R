@@ -391,6 +391,10 @@ year_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
   coord_cartesian(ylim = c(0, 25)) +
   theme_pubr()
 
+# Haul winter interacting with pond
+
+##### WIP #####
+
 
 # Haul date
 
@@ -1077,6 +1081,8 @@ colnames(abundance)[colnames(abundance) == "haul.winter"] <- "year"
 
 
 ##### WIP - Calculate pd on year FOR EACH POND #####
+
+
 
 # Rename partial dependence predictions as year and pred_freq
 colnames(pd_year)[colnames(pd_year) == "x"] <- "year"
