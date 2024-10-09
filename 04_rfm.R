@@ -1123,41 +1123,73 @@ colnames(pd_year_pp) <- c("year", "pp_pred_freq")
 colnames(pd_year_pj) <- c("year", "pj_pred_freq")
 
 # Merge data
-abundance <- left_join(abundance_pp, pd_year_pp, by = "year")
-abundance <- left_join(abundance, abundance_pj, by = "year")
-abundance <- left_join(abundance, pd_year_pj, by = "year")
+abundance <- left_join(abundance_pj, pd_year_pj, by = "year")
+abundance <- left_join(abundance, abundance_pp, by = "year")
+abundance <- left_join(abundance, pd_year_pp, by = "year")
 abundance <- left_join(abundance, abundance_np, by = "year")
 abundance <- left_join(abundance, pd_year_np, by = "year")
 
-##### WIP - next is to plot the merged data #####
 
+## Plot data
 
-
-# Rename partial dependence predictions as year and pred_freq
-colnames(pd_year)[colnames(pd_year) == "x"] <- "year"
-colnames(pd_year)[colnames(pd_year) == "y"] <- "pred_freq"
-
-# Merge data
-abundance <- left_join(abundance, pd_year, by = "year")
-
-
-
-
-# Plot data
-ggplot(abundance, aes(x = year)) +
-  geom_line(aes(y = mean_freq, linetype = "Mean"), color = "black") +
-  geom_line(aes(y = pred_freq, color = "Predicted"), size = 1) +
+# PJ pond
+pj_abundance <- ggplot(abundance, aes(x = year)) +
+  geom_line(aes(y = pj_mean_freq, linetype = "Mean"), color = "black") +
+  geom_line(aes(y = pj_pred_freq, color = "Predicted"), linewidth = 1) +
   xlab("Year") +
-  ylab("Abundance Index (no. per haul)") +
+  ylab("Abundance (no. per haul)") +
+  ggtitle("Point Judith Pond") +
   scale_y_continuous(expand = c(0, 0)) +
   theme_pubr() +
-  theme(legend.position = c(0.85, 0.85),
+  coord_cartesian(xlim = c(1999, 2024), ylim = c(0, 30)) +
+  theme(legend.position = "none",
         legend.spacing.y = unit(0.1, 'cm'),  # Reduce space between legend entries
         legend.key.height = unit(0.4, 'cm'),
-        plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm")) +
+        plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
   scale_linetype_manual(values = c("Mean" = "dashed"), guide = guide_legend(title = NULL)) +
   scale_color_manual(values = c("Predicted" = "blue"), guide = guide_legend(title = NULL))
 
+# Ninigret Pond
+np_abundance <- ggplot(abundance, aes(x = year)) +
+  geom_line(aes(y = np_mean_freq, linetype = "Mean"), color = "black") +
+  geom_line(aes(y = np_pred_freq, color = "Predicted"), linewidth = 1) +
+  xlab("Year") +
+  ylab("") +
+  ggtitle("Ninigret Pond") +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr() +
+  coord_cartesian(xlim = c(1999, 2024), ylim = c(0, 30)) +
+  theme(legend.position = c(0.85, 0.85),
+        legend.spacing.y = unit(0.1, 'cm'),  # Reduce space between legend entries
+        legend.key.height = unit(0.4, 'cm'),
+        plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  scale_linetype_manual(values = c("Mean" = "dashed"), guide = guide_legend(title = NULL)) +
+  scale_color_manual(values = c("Predicted" = "blue"), guide = guide_legend(title = NULL))
+
+# Potter Pond
+pp_abundance <- ggplot(abundance, aes(x = year)) +
+  geom_line(aes(y = pp_mean_freq, linetype = "Mean"), color = "black") +
+  geom_line(aes(y = pp_pred_freq, color = "Predicted"), linewidth = 1) +
+  xlab("Year") +
+  ylab("") +
+  ggtitle("Potter Pond") +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr() +
+  coord_cartesian(xlim = c(1999, 2024), ylim = c(0, 30)) +
+  theme(legend.position = "none",
+        legend.spacing.y = unit(0.1, 'cm'),  # Reduce space between legend entries
+        legend.key.height = unit(0.4, 'cm'),
+        plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
+        plot.title = element_text(hjust = 0.5, face = "bold")) +
+  scale_linetype_manual(values = c("Mean" = "dashed"), guide = guide_legend(title = NULL)) +
+  scale_color_manual(values = c("Predicted" = "blue"), guide = guide_legend(title = NULL))
+
+# Combine plots
+ggarrange(pj_abundance, pp_abundance, np_abundance,
+  ncol = 3, nrow = 1)
+
 # Save plot
-ggsave("figures/04_abundance_index.png", width = 6, height = 4, units = "in", bg = "white")
+ggsave("figures/04_abundance_indices.png", width = 12, height = 3, units = "in", bg = "white")
 
