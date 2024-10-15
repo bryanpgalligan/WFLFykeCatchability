@@ -172,15 +172,24 @@ pd$y <- exp(pd$y) / (1 + exp(pd$y))
 # Make x factor
 pd$x <- as.factor(pd$x)
 
-# Save factor order
-station_order <- levels(pd$x)
-
 # Add column for colors based on x including NP, PP, or PJ
 pd$color <- c(
   "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159",
   "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC",
   "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A"
 )
+
+# Make color a factor
+pd$color <- as.factor(pd$color)
+
+# Put colors in decreasing order within each pond
+pd$x <- fct_reorder2(pd$x, pd$color, pd$y, .desc = TRUE)
+
+# Put stations in decreasing order within each pond
+pd$x <- fct_reorder2(pd$x, pd$y, pd$color, .desc = TRUE)
+
+# Save factor order
+station_order <- levels(pd$x)
 
 # Plot partial dependence
 station_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
@@ -210,13 +219,11 @@ pd$x <- as.Date(pd$x, origin = "1999-11-01")
 date_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
-  xlab("Haul Date") +
+  xlab("Day of Year") +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 1)) +
-  ggtitle("All Years Classification") +
-  theme_pubr() +
-  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
+  theme_pubr()
 
 # Make an AFS version of this plot
 ggplot(pd, aes(x = x, y = y)) +
@@ -348,7 +355,7 @@ vimportance <- as.data.frame(importance(rf_f99_freq))
 vimportance$var <- row.names(vimportance)
 
 # Clean variable names
-vimportance$var <- c("Year", "Day of Year", "Station", "Water Temp", "Pond", "Soak Days")
+vimportance$var <- c("Year", "Day of Year", "Station", "Water Temp", "Pond", "Soak Period")
 
 # Reorder in terms of importance
 vimportance$var <- fct_reorder(vimportance$var, vimportance$`%IncMSE`)
@@ -432,14 +439,11 @@ pd$x <- as.Date(pd$x, origin = "1999-11-01")
 date_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
-  xlab("Haul Date") +
+  xlab("Day of Year") +
   ylab("Frequency") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 12)) +
-  ggtitle("All Years Regression") +
-  theme_pubr() +
-  theme(plot.title = element_text(hjust = 0.5, face = "bold"))
-
+  theme_pubr()
 
 
 # Water temp
@@ -457,7 +461,7 @@ water_temp <- ggplot(pd, aes(x = x, y = y)) +
   ylab("Frequency") +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 10)) +
+  coord_cartesian(ylim = c(0, 12)) +
   theme_pubr()
 
 
@@ -497,10 +501,10 @@ pd <- bind_rows(partialPlot(rf_f99_freq,
   plot = FALSE))
 
 # Plot partial dependence
-ggplot(pd, aes(x = x, y = y)) +
+soak_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
-  xlab("Soak Days") +
+  xlab("Soak Period (Days)") +
   ylab("Frequency") +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
@@ -916,20 +920,23 @@ ggsave("figures/04_variable_importance.png", width = 10, height = 6, units = "in
 
 ##### Fig - Partial plots #####
 
-# Blank ggplot
-p <- ggplot() + theme_void()
-
-# Combine partial plots
+# Combine All Years Classification partial plots
 ggarrange(
-  date_1999_binary, date_1999_freq, date_2019_binary, date_2019_freq,
-  station_1999_binary, station_1999_freq, station_2019_binary, station_2019_freq,
-  set_1999_binary, p, set_2019_binary, set_2019_freq,
-  pond_1999_binary, pond_1999_freq, pond_2019_binary, p,
-  ncol = 4, nrow = 4
+  station_1999_binary, date_1999_binary, set_1999_binary,
+  ncol = 3, nrow = 1
 )
 
 # Save plot
-ggsave("figures/04_annual_variables.png", width = 15, height = 15, units = "in", bg = "white")
+ggsave("figures/04_pd_classification.png", width = 15, height = 3, units = "in", bg = "white")
+
+# Combine All Years Regression partial plots
+ggarrange(
+  date_1999_freq, water_temp, station_1999_freq, soak_1999_freq,
+  ncol = 2, nrow = 2
+)
+
+# Save plot
+ggsave("figures/04_pd_regression.png", width = 10, height = 6, units = "in", bg = "white")
 
 
 
