@@ -246,6 +246,7 @@ ggplot(pd, aes(x = x, y = y)) +
 # Save plot
 ggsave("figures/04_HaulDate_AFS.png", width = 10.28, height = 7.46, units = "in")
 
+
 # Set occurrence
 
 # Calculate partial dependence
@@ -261,7 +262,7 @@ set_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Set Occurrence") +
-  ylab("Catch Probability") +
+  ylab("") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 1), xlim = c(1, 20)) +
   theme_pubr()
@@ -458,7 +459,7 @@ water_temp <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Water Temp (°C)") +
-  ylab("Frequency") +
+  ylab("") +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 12)) +
@@ -505,7 +506,7 @@ soak_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Soak Period (Days)") +
-  ylab("Frequency") +
+  ylab("") +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 12)) +
