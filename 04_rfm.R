@@ -78,7 +78,7 @@ vimportance <- as.data.frame(importance(rf_f99_binary))
 vimportance$var <- row.names(vimportance)
 
 # Clean variable names
-vimportance$var <- c("Haul Winter", "Haul Date", "Station", "Set Occurrence", "Pond")
+vimportance$var <- c("Year", "Day of Year", "Station", "Set Occurrence", "Pond")
 
 # Reorder in terms of importance
 vimportance$var <- fct_reorder(vimportance$var, vimportance$MeanDecreaseAccuracy)
@@ -95,9 +95,11 @@ vars_1999_binary <- ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) 
   coord_flip() +
   xlab("") +
   ylab("Mean Decrease in Accuracy") +
+  ggtitle("All Years Classification") +
   scale_size_continuous(breaks = scales::pretty_breaks(n = 3)) +
   theme_pubr() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+    plot.title = element_text(hjust = 0.5, face = "bold"))
 
 ## Make a poster version of the plot
 
@@ -346,7 +348,7 @@ vimportance <- as.data.frame(importance(rf_f99_freq))
 vimportance$var <- row.names(vimportance)
 
 # Clean variable names
-vimportance$var <- c("Haul Winter", "Haul Date", "Station", "Water Temp", "Pond", "Soak Days")
+vimportance$var <- c("Year", "Day of Year", "Station", "Water Temp", "Pond", "Soak Days")
 
 # Reorder in terms of importance
 vimportance$var <- fct_reorder(vimportance$var, vimportance$`%IncMSE`)
@@ -363,9 +365,11 @@ vars_1999_freq <- ggplot(vimportance, aes(x = var, y = `%IncMSE`)) +
   coord_flip() +
   xlab("") +
   ylab("% Increase in MSE") +
+  ggtitle("All Years Regression") +
   scale_size_continuous(breaks = scales::pretty_breaks(n = 3)) +
   theme_pubr() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+    plot.title = element_text(hjust = 0.5, face = "bold"))
 
 
 ## Partial dependence plots
@@ -391,8 +395,6 @@ year_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
   coord_cartesian(ylim = c(0, 25)) +
   theme_pubr()
 
-
-##### WIP #####
 
 # Haul winter interacting with pond
 
@@ -592,7 +594,7 @@ rf_f19_binary
 vimportance <- as.data.frame(importance(rf_f19_binary))
 
 # Clean variable names
-vimportance$var <- c("Haul Date", "Station", "Pond", "Set Occurrence")
+vimportance$var <- c("Day of Year", "Station", "Pond", "Set Occurrence")
 
 # Reorder in terms of importance
 vimportance$var <- fct_reorder(vimportance$var, vimportance$MeanDecreaseAccuracy)
@@ -608,8 +610,10 @@ vars_2019_binary <- ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) 
   coord_flip() +
   xlab("") +
   ylab("Mean Decrease in Accuracy") +
+  ggtitle("Five-Year Classification") +
   theme_pubr() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+    plot.title = element_text(hjust = 0.5, face = "bold"))
 
 
 ## Partial dependence plots
@@ -782,7 +786,7 @@ rf_f19_freq
 vimportance <- as.data.frame(importance(rf_f19_freq))
 
 # Clean variable names
-vimportance$var <- c("Haul Date", "Station", "Set Occurrence", "Haul Winter")
+vimportance$var <- c("Day of Year", "Station", "Set Occurrence", "Year")
 
 # Reorder in terms of importance
 vimportance$var <- fct_reorder(vimportance$var, vimportance$`%IncMSE`)
@@ -798,9 +802,11 @@ vars_2019_freq <- ggplot(vimportance, aes(x = var, y = `%IncMSE`)) +
   coord_flip() +
   xlab("") +
   ylab("% Increase in MSE") +
+  ggtitle("Five-Year Regression") +
   scale_size_continuous(breaks = scales::pretty_breaks(n = 2)) +
   theme_pubr() +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+    plot.title = element_text(hjust = 0.5, face = "bold"))
 
 
 ## Partial dependence plots
@@ -899,11 +905,11 @@ year_2019_freq <- ggplot(pd, aes(x = x, y = y)) +
 
 # Combine variable importance plots
 ggarrange(vars_1999_binary, vars_1999_freq, vars_2019_binary, vars_2019_freq,
-  ncol = 4, nrow = 1,
-  labels = "AUTO", label.x = c(0.05, 0, 0.05, 0.05))
+  ncol = 2, nrow = 2)
+  #labels = "AUTO", label.x = c(0.05, 0, 0.05, 0.05))
 
 # Save plot
-ggsave("figures/04_variable_importance.png", width = 15, height = 3, units = "in")
+ggsave("figures/04_variable_importance.png", width = 10, height = 6, units = "in")
 
 
 
