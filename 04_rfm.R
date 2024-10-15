@@ -922,21 +922,21 @@ ggsave("figures/04_variable_importance.png", width = 10, height = 6, units = "in
 
 # Combine All Years Classification partial plots
 ggarrange(
-  station_1999_binary, date_1999_binary, set_1999_binary,
+  date_1999_binary, set_1999_binary,
+  ncol = 2, nrow = 1
+)
+
+# Save plot
+ggsave("figures/04_pd_classification.png", width = 9, height = 3, units = "in", bg = "white")
+
+# Combine All Years Regression partial plots
+ggarrange(
+  date_1999_freq, water_temp, soak_1999_freq,
   ncol = 3, nrow = 1
 )
 
 # Save plot
-ggsave("figures/04_pd_classification.png", width = 15, height = 3, units = "in", bg = "white")
-
-# Combine All Years Regression partial plots
-ggarrange(
-  date_1999_freq, water_temp, station_1999_freq, soak_1999_freq,
-  ncol = 2, nrow = 2
-)
-
-# Save plot
-ggsave("figures/04_pd_regression.png", width = 10, height = 6, units = "in", bg = "white")
+ggsave("figures/04_pd_regression.png", width = 12, height = 3, units = "in", bg = "white")
 
 
 
