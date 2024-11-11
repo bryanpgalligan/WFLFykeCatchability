@@ -249,28 +249,11 @@ pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
 station_order <- levels(pd$x)
 
 # Plot partial dependence
-#station_1999_binary <- 
-
-# WIP - version with only sample size labels
-ggplot(pd, aes(x = x, y = y, label = n, fill = pond)) +
+# WIP - version with sample size labels and stations where n<53 (5%) grayed out
+pd$alpha <- ifelse(pd$n < 53, 0.4, 1)
+station_1999_binary <- ggplot(pd, aes(x = x, y = y, label = n, fill = pond, alpha = alpha)) +
   geom_bar(stat = "Identity") +
-  geom_text(size = 2.8, nudge_y = 0.05) +
-  xlab("Station") +
-  ylab("Catch Probability") +
-  scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 1), clip = "off") +
-  scale_fill_manual(values = colors) +
-  theme_pubr() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
-    legend.title = element_blank()
-    #plot.margin = unit(c(0.5, 0.1, 0, 0.1), "in")
-    )
-
-# WIP - version with sample size labels and stations where n<50 grayed out
-pd$alpha <- ifelse(pd$n < 50, 0.4, 1)
-ggplot(pd, aes(x = x, y = y, label = n, fill = pond, alpha = alpha)) +
-  geom_bar(stat = "Identity") +
-  geom_text(size = 2.8, nudge_y = 0.05) +
+  geom_text(size = 3, nudge_y = 0.05) +
   xlab("Station") +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
@@ -284,37 +267,52 @@ ggplot(pd, aes(x = x, y = y, label = n, fill = pond, alpha = alpha)) +
     #plot.margin = unit(c(0.5, 0.1, 0, 0.1), "in")
     )
 
-# WIP - version with sample size labels and alpha = n
-ggplot(pd, aes(x = x, y = y, label = n, fill = pond)) +
-  geom_bar(stat = "Identity", aes(alpha = n)) +
-  geom_text(size = 2.8, nudge_y = 0.05) +
-  xlab("Station") +
-  ylab("Catch Probability") +
-  scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 1), clip = "off") +
-  scale_fill_manual(values = colors) +
-  theme_pubr() +
-  guides(alpha = "none") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
-    legend.title = element_blank()
-    #plot.margin = unit(c(0.5, 0.1, 0, 0.1), "in")
-    )
+# # WIP - version with only sample size labels
+# ggplot(pd, aes(x = x, y = y, label = n, fill = pond)) +
+#   geom_bar(stat = "Identity") +
+#   geom_text(size = 2.8, nudge_y = 0.05) +
+#   xlab("Station") +
+#   ylab("Catch Probability") +
+#   scale_y_continuous(expand = c(0, 0)) +
+#   coord_cartesian(ylim = c(0, 1), clip = "off") +
+#   scale_fill_manual(values = colors) +
+#   theme_pubr() +
+#   theme(axis.text.x = element_text(angle = 90, hjust = 1),
+#     legend.title = element_blank()
+#     #plot.margin = unit(c(0.5, 0.1, 0, 0.1), "in")
+#     )
+
+# # WIP - version with sample size labels and alpha = n
+# ggplot(pd, aes(x = x, y = y, label = n, fill = pond)) +
+#   geom_bar(stat = "Identity", aes(alpha = n)) +
+#   geom_text(size = 2.8, nudge_y = 0.05) +
+#   xlab("Station") +
+#   ylab("Catch Probability") +
+#   scale_y_continuous(expand = c(0, 0)) +
+#   coord_cartesian(ylim = c(0, 1), clip = "off") +
+#   scale_fill_manual(values = colors) +
+#   theme_pubr() +
+#   guides(alpha = "none") +
+#   theme(axis.text.x = element_text(angle = 90, hjust = 1),
+#     legend.title = element_blank()
+#     #plot.margin = unit(c(0.5, 0.1, 0, 0.1), "in")
+#     )
 
 
-# WIP - version with no sample size labels and alpha = n
-ggplot(pd, aes(x = x, y = y, label = n, fill = pond)) +
-  geom_bar(stat = "Identity", aes(alpha = n)) +
-  xlab("Station") +
-  ylab("Catch Probability") +
-  scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 1), clip = "off") +
-  scale_fill_manual(values = colors) +
-  theme_pubr() +
-  guides(alpha = "none") +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
-    legend.title = element_blank()
-    #plot.margin = unit(c(0.5, 0.1, 0, 0.1), "in")
-    )
+# # WIP - version with no sample size labels and alpha = n
+# ggplot(pd, aes(x = x, y = y, label = n, fill = pond)) +
+#   geom_bar(stat = "Identity", aes(alpha = n)) +
+#   xlab("Station") +
+#   ylab("Catch Probability") +
+#   scale_y_continuous(expand = c(0, 0)) +
+#   coord_cartesian(ylim = c(0, 1), clip = "off") +
+#   scale_fill_manual(values = colors) +
+#   theme_pubr() +
+#   guides(alpha = "none") +
+#   theme(axis.text.x = element_text(angle = 90, hjust = 1),
+#     legend.title = element_blank()
+#     #plot.margin = unit(c(0.5, 0.1, 0, 0.1), "in")
+#     )
 
 # Haul date
 
@@ -334,7 +332,7 @@ date_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Day of Year") +
-  ylab("Catch Probability") +
+  ylab("") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 1)) +
   theme_pubr()
@@ -343,7 +341,7 @@ date_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
 ggplot(pd, aes(x = x, y = y)) +
   geom_line(linewidth = 1.5) +
   geom_smooth(color = "blue", linewidth = 2) +
-  xlab("") +
+  xlab("Day of Year") +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 1)) +
@@ -561,25 +559,54 @@ pd <- bind_rows(partialPlot(rf_f99_freq,
   pred.data = x, x.var = "station",
   plot = FALSE))
 
-# Make factor following order of station_1999_binary
-pd$x <- factor(pd$x, levels = station_order)
+# Make x factor in decreasing order of y
+pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
 
-# Add column for colors based on x including NP, PP, or PJ
-pd$color <- c(
-  "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159",
-  "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC",
-  "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A"
-)
+# Add empty column for sample size annotations
+pd$n <- NA
+
+# Add sample size annotations based on fyke99
+for (i in 1:nrow(pd)) {
+  pd$n[i] <- length(fyke99$station[fyke99$station == pd$x[i]])
+}
+
+# Add pond column
+pd$pond <- str_sub(pd$x, 1, 2)
+
+# Make ponds full names
+for (i in 1:length(pd$pond)){
+  if (pd$pond[i] == "NP") {
+    pd$pond[i] <- "Ninigret"
+  } else if (pd$pond[i] == "PJ") {
+    pd$pond[i] <- "Point Judith"
+  } else {
+    pd$pond[i] <- "Potter"
+  }
+}
+
+# Add manual alpha column
+pd$alpha <- ifelse(pd$n < 53, 0.4, 1)
+
+# Custom color palette
+colors <- c("Potter" = "#FFC20A", "Ninigret" = "#D41159", "Point Judith" = "#0C7BDC")
 
 # Plot partial dependence
-station_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
-  geom_bar(stat = "Identity", fill = pd$color) +
+station_1999_freq <- ggplot(pd, aes(x = x, y = y, label = n, fill = pond, alpha = alpha)) +
+  geom_bar(stat = "Identity") +
+  geom_text(size = 3, nudge_y = 0.5) +
   xlab("Station") +
-  ylab("Frequency") +
+  ylab("") +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 12)) +
+  coord_cartesian(ylim = c(0, 12), clip = "off") +
+  scale_fill_manual(values = colors) +
+  scale_alpha_identity() +
+  guides(alpha = "none") +
   theme_pubr() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+    legend.title = element_blank(),
+    legend.position = "top"
+    #plot.margin = unit(c(0.5, 0.1, 0, 0.1), "in")
+    )
 
 
 # Soak days
@@ -594,7 +621,7 @@ soak_1999_freq <- ggplot(pd, aes(x = x, y = y)) +
   geom_line() +
   geom_smooth(color = "blue") +
   xlab("Soak Period (Days)") +
-  ylab("") +
+  ylab("Frequency") +
   scale_x_continuous(expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 12)) +
@@ -1011,21 +1038,21 @@ ggsave("figures/04_variable_importance.png", width = 10, height = 6, units = "in
 
 # Combine All Years Classification partial plots
 ggarrange(
-  date_1999_binary, set_1999_binary,
-  ncol = 2, nrow = 1
+  station_1999_binary, date_1999_binary, set_1999_binary,
+  ncol = 3, nrow = 1, widths = c(1.5, 1, 1)
 )
 
 # Save plot
-ggsave("figures/04_pd_classification.png", width = 9, height = 3, units = "in", bg = "white")
+ggsave("figures/04_pd_classification.png", width = 12, height = 3, units = "in", bg = "white")
 
 # Combine All Years Regression partial plots
 ggarrange(
-  date_1999_freq, water_temp, soak_1999_freq,
-  ncol = 3, nrow = 1
+  date_1999_freq, water_temp, station_1999_freq, soak_1999_freq,
+  ncol = 4, nrow = 1, widths = c(1, 1, 1.5, 1)
 )
 
 # Save plot
-ggsave("figures/04_pd_regression.png", width = 12, height = 3, units = "in", bg = "white")
+ggsave("figures/04_pd_regression.png", width = 16, height = 3, units = "in", bg = "white")
 
 
 
