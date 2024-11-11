@@ -159,6 +159,37 @@ year_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
   theme_pubr()
 
 
+# Pond
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf_f99_binary,
+  pred.data = x, x.var = "pond", which.class = "1",
+  plot = FALSE))
+
+# Convert logits to probabilities
+pd$y <- exp(pd$y) / (1 + exp(pd$y))
+
+# Rename ponds
+pd$x <- as.factor(c("Ninigret", "Point Judith", "Potter"))
+
+# Add column for color
+pd$color <- c("#D41159", "#0C7BDC", "#FFC20A")
+
+# Custom color palette
+colors <- c("Ninigret" = "#D41159", "Point Judith" = "#0C7BDC", "Potter" = "#FFC20A")
+
+# Plot partial dependence
+pond_1999_binary <- ggplot(pd, aes(x = x, y = y, fill = x)) +
+  geom_bar(stat = "Identity") +
+  xlab("Pond") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 1)) +
+  scale_fill_manual(values = colors) +
+  theme_pubr() +
+  theme(legend.title = element_blank(), legend.position = "bottom")
+
+
 # Station
 
 # Calculate partial dependence
@@ -172,35 +203,118 @@ pd$y <- exp(pd$y) / (1 + exp(pd$y))
 # Make x factor
 pd$x <- as.factor(pd$x)
 
-# Add column for colors based on x including NP, PP, or PJ
-pd$color <- c(
-  "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159",
-  "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC",
-  "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A"
-)
+# Add empty column for sample size annotations
+pd$n <- NA
 
-# Make color a factor
-pd$color <- as.factor(pd$color)
+# Add sample size annotations based on fyke99
+for (i in 1:nrow(pd)) {
+  pd$n[i] <- length(fyke99$station[fyke99$station == pd$x[i]])
+}
 
-# Put colors in decreasing order within each pond
-pd$x <- fct_reorder2(pd$x, pd$color, pd$y, .desc = TRUE)
+# Add pond column
+pd$pond <- str_sub(pd$x, 1, 2)
+
+# Make ponds full names
+for (i in 1:length(pd$pond)){
+  if (pd$pond[i] == "NP") {
+    pd$pond[i] <- "Ninigret"
+  } else if (pd$pond[i] == "PJ") {
+    pd$pond[i] <- "Point Judith"
+  } else {
+    pd$pond[i] <- "Potter"
+  }
+}
+
+
+# # Add column for colors based on x including NP, PP, or PJ
+# pd$color <- c(
+#   "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159", "#D41159",
+#   "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC", "#0C7BDC",
+#   "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A", "#FFC20A"
+# )
+
+# Custom color palette
+colors <- c("Potter" = "#FFC20A", "Ninigret" = "#D41159", "Point Judith" = "#0C7BDC")
+
+# # Make color a factor
+# pd$color <- as.factor(pd$color)
+
+# # Put colors in decreasing order within each pond
+# pd$x <- fct_reorder2(pd$x, pd$color, pd$y, .desc = TRUE)
 
 # Put stations in decreasing order within each pond
-pd$x <- fct_reorder2(pd$x, pd$y, pd$color, .desc = TRUE)
+pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
 
 # Save factor order
 station_order <- levels(pd$x)
 
 # Plot partial dependence
-station_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
-  geom_bar(stat = "Identity", fill = pd$color) +
+#station_1999_binary <- 
+
+# WIP - version with only sample size labels
+ggplot(pd, aes(x = x, y = y, label = n, fill = pond)) +
+  geom_bar(stat = "Identity") +
+  geom_text(size = 2.8, nudge_y = 0.05) +
   xlab("Station") +
   ylab("Catch Probability") +
   scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 1)) +
+  coord_cartesian(ylim = c(0, 1), clip = "off") +
+  scale_fill_manual(values = colors) +
   theme_pubr() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+    legend.title = element_blank()
+    #plot.margin = unit(c(0.5, 0.1, 0, 0.1), "in")
+    )
 
+# WIP - version with sample size labels and stations where n<50 grayed out
+pd$alpha <- ifelse(pd$n < 50, 0.4, 1)
+ggplot(pd, aes(x = x, y = y, label = n, fill = pond, alpha = alpha)) +
+  geom_bar(stat = "Identity") +
+  geom_text(size = 2.8, nudge_y = 0.05) +
+  xlab("Station") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 1), clip = "off") +
+  scale_fill_manual(values = colors) +
+  scale_alpha_identity() +
+  guides(alpha = "none") +
+  theme_pubr() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+    legend.title = element_blank()
+    #plot.margin = unit(c(0.5, 0.1, 0, 0.1), "in")
+    )
+
+# WIP - version with sample size labels and alpha = n
+ggplot(pd, aes(x = x, y = y, label = n, fill = pond)) +
+  geom_bar(stat = "Identity", aes(alpha = n)) +
+  geom_text(size = 2.8, nudge_y = 0.05) +
+  xlab("Station") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 1), clip = "off") +
+  scale_fill_manual(values = colors) +
+  theme_pubr() +
+  guides(alpha = "none") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+    legend.title = element_blank()
+    #plot.margin = unit(c(0.5, 0.1, 0, 0.1), "in")
+    )
+
+
+# WIP - version with no sample size labels and alpha = n
+ggplot(pd, aes(x = x, y = y, label = n, fill = pond)) +
+  geom_bar(stat = "Identity", aes(alpha = n)) +
+  xlab("Station") +
+  ylab("Catch Probability") +
+  scale_y_continuous(expand = c(0, 0)) +
+  coord_cartesian(ylim = c(0, 1), clip = "off") +
+  scale_fill_manual(values = colors) +
+  theme_pubr() +
+  guides(alpha = "none") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+    legend.title = element_blank()
+    #plot.margin = unit(c(0.5, 0.1, 0, 0.1), "in")
+    )
 
 # Haul date
 
@@ -265,32 +379,6 @@ set_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
   ylab("") +
   scale_y_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(0, 1), xlim = c(1, 20)) +
-  theme_pubr()
-
-
-# Pond
-
-# Calculate partial dependence
-pd <- bind_rows(partialPlot(rf_f99_binary,
-  pred.data = x, x.var = "pond", which.class = "1",
-  plot = FALSE))
-
-# Convert logits to probabilities
-pd$y <- exp(pd$y) / (1 + exp(pd$y))
-
-# Rename ponds
-pd$x <- as.factor(c("Ninigret", "Point Judith", "Potter"))
-
-# Add column for color
-pd$color <- c("#D41159", "#0C7BDC", "#FFC20A")
-
-# Plot partial dependence
-pond_1999_binary <- ggplot(pd, aes(x = x, y = y)) +
-  geom_bar(stat = "Identity", fill = pd$color) +
-  xlab("Pond") +
-  ylab("Catch Probability") +
-  scale_y_continuous(expand = c(0, 0)) +
-  coord_cartesian(ylim = c(0, 1)) +
   theme_pubr()
 
 
