@@ -1224,20 +1224,39 @@ colnames(pd_year_np) <- c("year", "np_pred_freq")
 colnames(pd_year_pp) <- c("year", "pp_pred_freq")
 colnames(pd_year_pj) <- c("year", "pj_pred_freq")
 
-# Merge data
+# Merge data and split prediction columns
+
+# Point Judith
 abundance <- left_join(abundance_pj, pd_year_pj, by = "year")
+
+# Potter Pond
 abundance <- left_join(abundance, abundance_pp, by = "year")
 abundance <- left_join(abundance, pd_year_pp, by = "year")
+abundance$pp_pred_freq2 <- NA
+for(i in 1:nrow(abundance)){
+  if(is.na(abundance$pp_mean_freq[i])){
+    abundance$pp_pred_freq2[i] <- abundance$pp_pred_freq[i]
+    abundance$pp_pred_freq[i] <- NA
+  }
+}
+
+# Ninigret Pond
 abundance <- left_join(abundance, abundance_np, by = "year")
 abundance <- left_join(abundance, pd_year_np, by = "year")
-
+abundance$np_pred_freq2 <- NA
+for(i in 1:nrow(abundance)){
+  if(is.na(abundance$np_mean_freq[i])){
+    abundance$np_pred_freq2[i] <- abundance$np_pred_freq[i]
+    abundance$np_pred_freq[i] <- NA
+  }
+}
 
 ## Plot data
 
 # PJ pond
 pj_abundance <- ggplot(abundance, aes(x = year)) +
-  geom_line(aes(y = pj_mean_freq, linetype = "Mean"), color = "black") +
-  geom_line(aes(y = pj_pred_freq, color = "Predicted"), linewidth = 1) +
+  geom_line(aes(y = pj_mean_freq, color = "Mean")) +
+  geom_line(aes(y = pj_pred_freq, color = "Corrected"), linewidth = 1) +
   xlab("Year") +
   ylab("Abundance (no. per haul)") +
   ggtitle("Point Judith Pond") +
@@ -1249,13 +1268,13 @@ pj_abundance <- ggplot(abundance, aes(x = year)) +
         legend.key.height = unit(0.4, 'cm'),
         plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
         plot.title = element_text(hjust = 0.5, face = "bold")) +
-  scale_linetype_manual(values = c("Mean" = "dashed"), guide = guide_legend(title = NULL)) +
-  scale_color_manual(values = c("Predicted" = "blue"), guide = guide_legend(title = NULL))
+  scale_color_manual(values = c("Mean" = "black", "Corrected" = "blue"), guide = guide_legend(title = NULL))
 
 # Ninigret Pond
 np_abundance <- ggplot(abundance, aes(x = year)) +
-  geom_line(aes(y = np_mean_freq, linetype = "Mean"), color = "black") +
-  geom_line(aes(y = np_pred_freq, color = "Predicted"), linewidth = 1) +
+  geom_line(aes(y = np_mean_freq, color = "Mean")) +
+  geom_line(aes(y = np_pred_freq, color = "Corrected"), linewidth = 1) +
+  geom_line(aes(y = np_pred_freq2, color = "Corrected"), linetype = "dashed", linewidth = 1) +
   xlab("Year") +
   ylab("") +
   ggtitle("Ninigret Pond") +
@@ -1267,13 +1286,13 @@ np_abundance <- ggplot(abundance, aes(x = year)) +
         legend.key.height = unit(0.4, 'cm'),
         plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
         plot.title = element_text(hjust = 0.5, face = "bold")) +
-  scale_linetype_manual(values = c("Mean" = "dashed"), guide = guide_legend(title = NULL)) +
-  scale_color_manual(values = c("Predicted" = "blue"), guide = guide_legend(title = NULL))
+  scale_color_manual(values = c("Mean" = "black", "Corrected" = "blue"), guide = guide_legend(title = NULL))
 
 # Potter Pond
 pp_abundance <- ggplot(abundance, aes(x = year)) +
-  geom_line(aes(y = pp_mean_freq, linetype = "Mean"), color = "black") +
-  geom_line(aes(y = pp_pred_freq, color = "Predicted"), linewidth = 1) +
+  geom_line(aes(y = pp_mean_freq, color = "Mean")) +
+  geom_line(aes(y = pp_pred_freq, color = "Corrected"), linewidth = 1) +
+  geom_line(aes(y = pp_pred_freq2, color = "Corrected"), linetype = "dashed", linewidth = 1) +
   xlab("Year") +
   ylab("") +
   ggtitle("Potter Pond") +
@@ -1285,8 +1304,7 @@ pp_abundance <- ggplot(abundance, aes(x = year)) +
         legend.key.height = unit(0.4, 'cm'),
         plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
         plot.title = element_text(hjust = 0.5, face = "bold")) +
-  scale_linetype_manual(values = c("Mean" = "dashed"), guide = guide_legend(title = NULL)) +
-  scale_color_manual(values = c("Predicted" = "blue"), guide = guide_legend(title = NULL))
+  scale_color_manual(values = c("Mean" = "black", "Corrected" = "blue"), guide = guide_legend(title = NULL))
 
 # Combine plots
 ggarrange(pj_abundance, pp_abundance, np_abundance,
