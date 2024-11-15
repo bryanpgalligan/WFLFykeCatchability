@@ -249,8 +249,8 @@ pd$x <- fct_reorder(pd$x, pd$y, .desc = TRUE)
 station_order <- levels(pd$x)
 
 # Plot partial dependence
-# WIP - version with sample size labels and stations where n<53 (5%) grayed out
-pd$alpha <- ifelse(pd$n < 53, 0.4, 1)
+# WIP - version with sample size labels and stations where n<11 (1%) grayed out
+pd$alpha <- ifelse(pd$n < 11, 0.4, 1)
 station_1999_binary <- ggplot(pd, aes(x = x, y = y, label = n, fill = pond, alpha = alpha)) +
   geom_bar(stat = "Identity") +
   geom_text(size = 3, nudge_y = 0.05) +
@@ -585,7 +585,7 @@ for (i in 1:length(pd$pond)){
 }
 
 # Add manual alpha column
-pd$alpha <- ifelse(pd$n < 53, 0.4, 1)
+pd$alpha <- ifelse(pd$n < 11, 0.4, 1)
 
 # Custom color palette
 colors <- c("Potter" = "#FFC20A", "Ninigret" = "#D41159", "Point Judith" = "#0C7BDC")
