@@ -99,7 +99,7 @@ vars_1999_binary <- ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) 
   scale_size_continuous(breaks = scales::pretty_breaks(n = 3)) +
   theme_pubr() +
   theme(legend.position = "bottom",
-    plot.title = element_text(hjust = 0.5, face = "bold"))
+    plot.title = element_text(hjust = 0.5))
 
 ## Make a poster version of the plot
 
@@ -463,7 +463,7 @@ vars_1999_freq <- ggplot(vimportance, aes(x = var, y = `%IncMSE`)) +
   scale_size_continuous(breaks = scales::pretty_breaks(n = 3)) +
   theme_pubr() +
   theme(legend.position = "bottom",
-    plot.title = element_text(hjust = 0.5, face = "bold"))
+    plot.title = element_text(hjust = 0.5))
 
 
 ## Partial dependence plots
@@ -733,7 +733,7 @@ vars_2019_binary <- ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) 
   ggtitle("Five-Year Classification") +
   theme_pubr() +
   theme(legend.position = "bottom",
-    plot.title = element_text(hjust = 0.5, face = "bold"))
+    plot.title = element_text(hjust = 0.5))
 
 
 ## Partial dependence plots
@@ -926,7 +926,7 @@ vars_2019_freq <- ggplot(vimportance, aes(x = var, y = `%IncMSE`)) +
   scale_size_continuous(breaks = scales::pretty_breaks(n = 2)) +
   theme_pubr() +
   theme(legend.position = "bottom",
-    plot.title = element_text(hjust = 0.5, face = "bold"))
+    plot.title = element_text(hjust = 0.5))
 
 
 ## Partial dependence plots
@@ -1029,7 +1029,7 @@ ggarrange(vars_1999_binary, vars_1999_freq, vars_2019_binary, vars_2019_freq,
   #labels = "AUTO", label.x = c(0.05, 0, 0.05, 0.05))
 
 # Save plot
-ggsave("figures/04_variable_importance.png", width = 10, height = 6, units = "in")
+ggsave("figures/04_variable_importance.png", width = 10, height = 6, units = "in", dpi = 600)
 
 
 
@@ -1043,7 +1043,7 @@ ggarrange(
 )
 
 # Save plot
-ggsave("figures/04_pd_classification.png", width = 12, height = 3, units = "in", bg = "white")
+ggsave("figures/04_pd_classification.png", width = 12, height = 3, units = "in", bg = "white", dpi = 600)
 
 # Combine All Years Regression partial plots
 ggarrange(
@@ -1052,7 +1052,7 @@ ggarrange(
 )
 
 # Save plot
-ggsave("figures/04_pd_regression.png", width = 16, height = 3, units = "in", bg = "white")
+ggsave("figures/04_pd_regression.png", width = 16, height = 3, units = "in", bg = "white", dpi = 600)
 
 
 
@@ -1219,7 +1219,7 @@ ggsave("figures/04_environmental_variables.png", width = 15, height = 6, units =
 
 ##### Fig - Abundance Index #####
 
-# Make a non-corrected annual abundance index based on mean freq for Ninegret pond
+# Make a non-corrected annual abundance index based on mean freq for Ninigret pond
 abundance_np <- fyke99 %>%
   filter(pond == "NP") %>%
   group_by(haul.winter) %>%
@@ -1253,12 +1253,8 @@ colnames(pd_year_pj) <- c("year", "pj_pred_freq")
 
 # Merge data and split prediction columns
 
-# Point Judith
-abundance <- left_join(abundance_pj, pd_year_pj, by = "year")
-
 # Potter Pond
-abundance <- left_join(abundance, abundance_pp, by = "year")
-abundance <- left_join(abundance, pd_year_pp, by = "year")
+abundance <- left_join(pd_year_pp, abundance_pp, by = "year")
 abundance$pp_pred_freq2 <- NA
 for(i in 1:nrow(abundance)){
   if(is.na(abundance$pp_mean_freq[i])){
@@ -1266,6 +1262,10 @@ for(i in 1:nrow(abundance)){
     abundance$pp_pred_freq[i] <- NA
   }
 }
+
+# Point Judith
+abundance <- left_join(abundance, abundance_pj, by = "year")
+abundance <- left_join(abundance, pd_year_pj, by = "year")
 
 # Ninigret Pond
 abundance <- left_join(abundance, abundance_np, by = "year")
@@ -1294,14 +1294,14 @@ pj_abundance <- ggplot(abundance, aes(x = year)) +
         legend.spacing.y = unit(0.1, 'cm'),  # Reduce space between legend entries
         legend.key.height = unit(0.4, 'cm'),
         plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-        plot.title = element_text(hjust = 0.5, face = "bold")) +
+        plot.title = element_text(hjust = 0.5)) +
   scale_color_manual(values = c("Mean" = "black", "Corrected" = "blue"), guide = guide_legend(title = NULL))
 
 # Ninigret Pond
 np_abundance <- ggplot(abundance, aes(x = year)) +
   geom_line(aes(y = np_mean_freq, color = "Mean")) +
   geom_line(aes(y = np_pred_freq, color = "Corrected"), linewidth = 1) +
-  geom_line(aes(y = np_pred_freq2, color = "Corrected"), linetype = "dashed", linewidth = 1) +
+  geom_line(aes(y = np_pred_freq2, color = "Corrected"), linetype = "dotted", linewidth = 1) +
   xlab("Year") +
   ylab("") +
   ggtitle("Ninigret Pond") +
@@ -1312,14 +1312,14 @@ np_abundance <- ggplot(abundance, aes(x = year)) +
         legend.spacing.y = unit(0.1, 'cm'),  # Reduce space between legend entries
         legend.key.height = unit(0.4, 'cm'),
         plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-        plot.title = element_text(hjust = 0.5, face = "bold")) +
+        plot.title = element_text(hjust = 0.5)) +
   scale_color_manual(values = c("Mean" = "black", "Corrected" = "blue"), guide = guide_legend(title = NULL))
 
 # Potter Pond
 pp_abundance <- ggplot(abundance, aes(x = year)) +
   geom_line(aes(y = pp_mean_freq, color = "Mean")) +
   geom_line(aes(y = pp_pred_freq, color = "Corrected"), linewidth = 1) +
-  geom_line(aes(y = pp_pred_freq2, color = "Corrected"), linetype = "dashed", linewidth = 1) +
+  geom_line(aes(y = pp_pred_freq2, color = "Corrected"), linetype = "dotted", linewidth = 1) +
   xlab("Year") +
   ylab("") +
   ggtitle("Potter Pond") +
@@ -1330,7 +1330,7 @@ pp_abundance <- ggplot(abundance, aes(x = year)) +
         legend.spacing.y = unit(0.1, 'cm'),  # Reduce space between legend entries
         legend.key.height = unit(0.4, 'cm'),
         plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-        plot.title = element_text(hjust = 0.5, face = "bold")) +
+        plot.title = element_text(hjust = 0.5)) +
   scale_color_manual(values = c("Mean" = "black", "Corrected" = "blue"), guide = guide_legend(title = NULL))
 
 # Combine plots
@@ -1338,5 +1338,5 @@ ggarrange(pj_abundance, pp_abundance, np_abundance,
   ncol = 3, nrow = 1)
 
 # Save plot
-ggsave("figures/04_abundance_indices.png", width = 12, height = 3, units = "in", bg = "white")
+ggsave("figures/04_abundance_indices.png", width = 12, height = 3, units = "in", bg = "white", dpi = 600)
 
