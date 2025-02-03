@@ -113,6 +113,36 @@ fyke <- fyke[, c(7:8, 1:6, 9:ncol(fyke))]
 #gt_plt_summary(fyke[3:ncol(fyke)], "Fyke Summary")
 
 
+
+
+##### Flounder Data #####
+
+# Load data on individual fish
+flounder <- read_excel("data/raw-data/WinterFlounder.xlsx")
+
+# Change column names
+colnames(flounder)[1] <- "event"
+colnames(flounder)[3] <- "length_cm"
+
+# Select desired columns
+flounder <- select(flounder, event, length_cm)
+
+# Add new columns
+flounder$year <- as.numeric(substr(flounder$event, 5, 8))
+flounder$pond <- substr(flounder$event, 10, 11)
+flounder$station <- substr(flounder$event, 10, 12)
+flounder$month <- as.numeric(substr(flounder$event, 1, 2))
+
+# Correct year to represent survey year
+flounder$year <- ifelse(flounder$month > 9, flounder$year + 1, flounder$year)
+
+# Remove event id
+flounder <- select(flounder, -event)
+
+# Save cleaned data
+write_csv(flounder, "data/clean-data/02_FishLengths.csv")
+
+
 ##### Weather Data #####
 
 ## Import and analyze NOAA weather data from:
