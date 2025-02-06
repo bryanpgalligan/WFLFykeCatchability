@@ -3,7 +3,7 @@
 ## Load data
 flounder<- read.csv("data/clean-data/02_FishLengths.csv")
 fyke <- read_csv("data/clean-data/02_FykeSets_Complete.csv")
-
+fyke_cvars <- read_csv("data/clean-data/03_FykeSets_CandidateVars_1999.csv")
 
 ## Effort by pond through time (stacked bars)
 
@@ -143,5 +143,87 @@ ggplot(data, aes(x = length_cm)) +
 
 # Save plot
 ggsave("figures/05_lengths-before-2003.png", width = 8, height = 6, units = "in")
+
+
+
+
+##### Summary statistics #####
+
+# Function to find SE (standard error) of the mean of a vector
+se.mean <- function(x){
+  
+  # If there are NA in x
+  if(sum(is.na(x)) > 0){
+    
+    # Remove NA
+    x <- na.omit(x)
+  }
+  
+  sd(x)/sqrt(length(x))
+  
+}
+  
+
+# Soak period
+mean(fyke$soak_days, na.rm = TRUE)
+se.mean(fyke$soak_days)
+min(fyke$soak_days, na.rm = TRUE)
+max(fyke$soak_days, na.rm = TRUE)
+
+# Lunar illumination
+mean(fyke$lunar.illumination, na.rm = TRUE)
+se.mean(fyke$lunar.illumination)
+min(fyke$lunar.illumination, na.rm = TRUE)
+max(fyke$lunar.illumination, na.rm = TRUE)
+
+# Set occurrence
+mean(fyke$set.occurrence_yr, na.rm = TRUE)
+se.mean(fyke$set.occurrence_yr)
+min(fyke$set.occurrence_yr, na.rm = TRUE)
+max(fyke$set.occurrence_yr, na.rm = TRUE)
+
+# Water temperature
+mean(fyke_cvars$water.temp_c, na.rm = TRUE)
+se.mean(fyke_cvars$water.temp_c)
+min(fyke_cvars$water.temp_c, na.rm = TRUE)
+max(fyke_cvars$water.temp_c, na.rm = TRUE)
+
+# Air temperature
+mean(fyke$noaa.avg.air.temp_c, na.rm = TRUE)
+se.mean(fyke$noaa.avg.air.temp_c)
+min(fyke$noaa.avg.air.temp_c, na.rm = TRUE)
+max(fyke$noaa.avg.air.temp_c, na.rm = TRUE)
+
+# Air temperature range
+mean(fyke_cvars$air.temp.range_c, na.rm = TRUE)
+se.mean(fyke_cvars$air.temp.range_c)
+min(fyke_cvars$air.temp.range_c, na.rm = TRUE)
+max(fyke_cvars$air.temp.range_c, na.rm = TRUE)
+
+# Heating degree days
+mean(fyke$noaa.heating.degrees_day, na.rm = TRUE)
+se.mean(fyke$noaa.heating.degrees_day)
+min(fyke$noaa.heating.degrees_day, na.rm = TRUE)
+max(fyke$noaa.heating.degrees_day, na.rm = TRUE)
+
+# Salinity
+mean(fyke_cvars$salinity_ppt, na.rm = TRUE)
+se.mean(fyke_cvars$salinity_ppt)
+min(fyke_cvars$salinity_ppt, na.rm = TRUE)
+max(fyke_cvars$salinity_ppt, na.rm = TRUE)
+
+# Precipitation
+mean(fyke_cvars$precip_mm.day, na.rm = TRUE)
+se.mean(fyke_cvars$precip_mm.day)
+min(fyke_cvars$precip_mm.day, na.rm = TRUE)
+max(fyke_cvars$precip_mm.day, na.rm = TRUE)
+
+# Wind speed
+mean(fyke_cvars$wind_m.s, na.rm = TRUE)
+se.mean(fyke_cvars$wind_m.s)
+min(fyke_cvars$wind_m.s, na.rm = TRUE)
+max(fyke_cvars$wind_m.s, na.rm = TRUE)
+
+
 
 
