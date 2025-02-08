@@ -209,6 +209,53 @@ set_rfc <- ggplot(ale, aes(x = .borders, y = .value)) +
   theme_pubr()
 
 
+## Pond
+
+# Extract rug data
+rug <- select(fyke99_binary_train, pond)
+
+# Extract rf effects for pond
+ale <- effs$results$pond
+
+# Limit to class = 1
+ale <- filter(ale, .class == 1)
+
+# Convert logits to probabilities
+ale$.value <- exp(ale$.value) / (1 + exp(ale$.value))
+
+# All three ponds are at 0.5, so pond must only be an interacting effect
+
+
+## Station
+
+# Extract rug data
+rug <- select(fyke99_binary_train, station)
+
+# Summarize rug as total number of samples per station
+rug <- rug %>% group_by(station) %>% summarise(n = n())
+
+# Extract rf effects for station
+ale <- effs$results$station
+
+# Limit to class = 1
+ale <- filter(ale, .class == 1)
+
+# Convert logits to probabilities
+ale$.value <- exp(ale$.value) / (1 + exp(ale$.value))
+
+# Select columns
+ale <- select(ale, .value, .borders)
+
+# Rename columns
+colnames(ale) <- c("occurrence", "station")
+
+# Rename ale
+station_effects <- ale
+
+# Add sample size to station_effects
+station_effects <- left_join(station_effects, rug, by = "station")
+
+
 
 
 ##### RFM Regression #####
@@ -381,6 +428,35 @@ soak_rfr <- ggplot(ale, aes(x = .borders, y = .value)) +
   scale_x_continuous(expand = c(0, 0)) +
   coord_cartesian(ylim = c(-10, 10)) +
   theme_pubr()
+
+
+## Pond
+
+# Extract rug data
+rug <- select(fyke99_freq_train, pond)
+
+# Extract rf effects for pond
+ale <- effs$results$pond
+
+# There are some effects here, but all quite small (<1)
+
+
+## Station
+
+# Extract rf effects for station
+ale <- effs$results$station
+
+# Select columns
+ale <- select(ale, .value, .borders)
+
+# Rename columns
+colnames(ale) <- c("abundance", "station")
+
+# Join to station data
+station_effects <- left_join(station_effects, ale, by = "station")
+
+# Reorder columns of station_effects
+station_effects <- select(station_effects, station, n, abundance, occurrence)
 
 
 # # Haul winter
@@ -1246,6 +1322,160 @@ ggsave("figures/04_ale-plots.png", width = 10, height = 8, units = "in", bg = "w
 # ggsave("figures/04_environmental_variables.png", width = 15, height = 6, units = "in", bg = "white")
 
 
+
+
+##### Fig - Station Effects Map #####
+
+# Import lat/lon
+stations <- read_excel("data/raw-data/FykeStations.xlsx")
+
+# Select columns
+stations <- select(stations, Station_ID, Latitude, Longitude)
+
+# Rename columns
+colnames(stations) <- c("station", "lat", "lon")
+
+# Merge with station data
+station_effects <- left_join(station_effects, stations, by = "station")
+
+# Group station effects by positive and negative
+station_effects$posneg <- ifelse(station_effects$abundance > 0, "Positive", "Negative")
+
+# Add a pond column
+station_effects$pond <- substr(station_effects$station, 1, 2)
+
+# Split into two separate data frames, one with n<30 and one with n>=30
+station_effects1 <- filter(station_effects, n < 30)
+station_effects2 <- filter(station_effects, n >= 30)
+
+
+library(sf)
+library(ggplot2)
+library(osmdata)
+library(ggrepel)
+
+## Ninigret
+
+# Define the bounding box for Ninigret Pond
+np_bbox <- c(-71.7, 41.34, -71.626912, 41.385)
+
+# Get OSM data for waterbodies
+np_map <- opq(bbox = np_bbox) %>%
+  add_osm_feature(key = 'natural', value = 'water') %>%
+  osmdata_sf()
+
+# Plot the map
+np_stationsplot <- ggplot() +
+  geom_sf(data = np_map$osm_multipolygons, fill = "gray80", color = "gray50") +
+  coord_sf(xlim = c(np_bbox[1], np_bbox[3]), ylim = c(np_bbox[2], np_bbox[4])) +
+  geom_point(data = station_effects1, 
+    aes(x = lon, y = lat, color = posneg, size = abs(abundance)),
+    alpha = 0.5) +
+  geom_point(data = station_effects2,
+    aes(x = lon, y = lat, color = posneg, size = abs(abundance)),
+    alpha = 1) +
+  ggtitle("") +
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks = c(-71.7, -71.68, -71.66, -71.64)) +
+  scale_y_continuous(breaks = c(41.34, 41.36, 41.38)) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = "white"),  # White panel background
+    plot.background = element_rect(fill = "white", color = "white")   # White overall plot background
+  ) +
+  guides(
+    fill = guide_none(),
+    color = guide_legend(title = "Effect"),
+    size = guide_legend(title = "Effect Size")
+  )
+
+
+## Potter
+
+# Define the bounding box for Potter Pond
+pp_bbox <- c(-71.545, 41.374, -71.5265, 41.40)
+
+# Get OSM data for waterbodies
+pp_map <- opq(bbox = pp_bbox) %>%
+  add_osm_feature(key = 'natural', value = 'water') %>%
+  osmdata_sf()
+
+# Plot the map
+pp_stationsplot <- ggplot() +
+  geom_sf(data = pp_map$osm_multipolygons, fill = "gray80", color = "gray50") +
+  coord_sf(xlim = c(pp_bbox[1], pp_bbox[3]), ylim = c(pp_bbox[2], pp_bbox[4])) +
+  geom_point(data = station_effects1,
+    aes(x = lon, y = lat, color = posneg, size = abs(abundance)),
+    alpha = 0.5) +
+  geom_point(data = station_effects2,
+    aes(x = lon, y = lat, color = posneg, size = abs(abundance)),
+    alpha = 1) +
+  ggtitle("") +
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks = c(-71.54, -71.53)) +
+  scale_y_continuous(breaks = c(41.37, 41.38, 41.39, 41.4)) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = "white"),  # White panel background
+    plot.background = element_rect(fill = "white", color = "white")   # White overall plot background
+  ) +
+  guides(
+    fill = guide_none(),
+    color = guide_legend(title = "Effect"),
+    size = guide_legend(title = "Effect Size")
+  )
+
+
+## Point Judith
+
+# Define the bounding box for Point Judith Pond
+pj_bbox <- c(-71.518, 41.375, -71.49, 41.431)
+
+# Get OSM data for waterbodies
+pj_map <- opq(bbox = pj_bbox) %>%
+  add_osm_feature(key = 'natural', value = 'water') %>%
+  osmdata_sf()
+
+# Plot the map
+pj_stationsplot <- ggplot() +
+  geom_sf(data = pj_map$osm_multipolygons, fill = "gray80", color = "gray50") +
+  coord_sf(xlim = c(pj_bbox[1], pj_bbox[3]), ylim = c(pj_bbox[2], pj_bbox[4])) +
+  geom_point(data = station_effects1,
+    aes(x = lon, y = lat, color = posneg, size = abs(abundance)),
+    alpha = 0.5) +
+  geom_point(data = station_effects2,
+    aes(x = lon, y = lat, color = posneg, size = abs(abundance)),
+    alpha = 1) +
+  ggtitle("") +
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks = c(-71.51, -71.49)) +
+  scale_y_continuous(breaks = c(41.39, 41.41, 41.43)) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = "white"),  # White panel background
+    plot.background = element_rect(fill = "white", color = "white")   # White overall plot background
+  ) +
+  guides(
+    fill = guide_none(),
+    color = guide_legend(title = "Effect"),
+    size = guide_legend(title = "Effect Size")
+  )
+
+
+# Combine plots
+ggarrange(np_stationsplot, pp_stationsplot, pj_stationsplot,
+  ncol = 3, nrow = 1, common.legend = TRUE, legend = "right",
+  labels = c("Ninigret Pond", "Potter Pond", "Point Judith Pond")) +
+  theme(
+    plot.background = element_rect(fill = "white", color = "white"),  # White background for the whole arrangement
+    panel.background = element_rect(fill = "white", color = "white")  # White background for the panels
+  )
+
+# Save plot
+ggsave("figures/04_station-effects-map.png", width = 12, height = 4, units = "in", dpi = 600)
 
 
 ##### Fig - Abundance Index #####
