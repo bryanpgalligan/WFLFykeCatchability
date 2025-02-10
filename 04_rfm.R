@@ -1349,12 +1349,7 @@ station_effects1 <- filter(station_effects, n < 30)
 station_effects2 <- filter(station_effects, n >= 30)
 
 
-library(sf)
-library(ggplot2)
-library(osmdata)
-library(ggrepel)
-
-## Ninigret
+## Ninigret abundance
 
 # Define the bounding box for Ninigret Pond
 np_bbox <- c(-71.7, 41.34, -71.626912, 41.385)
@@ -1377,7 +1372,7 @@ np_stationsplot <- ggplot() +
   ggtitle("") +
   xlab("") +
   ylab("") +
-  scale_x_continuous(breaks = c(-71.7, -71.68, -71.66, -71.64)) +
+  scale_x_continuous(breaks = c(-71.7, -71.67, -71.64)) +
   scale_y_continuous(breaks = c(41.34, 41.36, 41.38)) +
   theme_minimal() +
   theme(
@@ -1387,11 +1382,11 @@ np_stationsplot <- ggplot() +
   guides(
     fill = guide_none(),
     color = guide_legend(title = "Effect"),
-    size = guide_legend(title = "Effect Size")
+    size = guide_legend(title = "Abundance\nEffect Size")
   )
 
 
-## Potter
+## Potter abundance
 
 # Define the bounding box for Potter Pond
 pp_bbox <- c(-71.545, 41.374, -71.5265, 41.40)
@@ -1424,11 +1419,11 @@ pp_stationsplot <- ggplot() +
   guides(
     fill = guide_none(),
     color = guide_legend(title = "Effect"),
-    size = guide_legend(title = "Effect Size")
+    size = guide_legend(title = "Abundance\nEffect Size")
   )
 
 
-## Point Judith
+## Point Judith abundance
 
 # Define the bounding box for Point Judith Pond
 pj_bbox <- c(-71.518, 41.375, -71.49, 41.431)
@@ -1461,12 +1456,12 @@ pj_stationsplot <- ggplot() +
   guides(
     fill = guide_none(),
     color = guide_legend(title = "Effect"),
-    size = guide_legend(title = "Effect Size")
+    size = guide_legend(title = "Abundance\nEffect Size")
   )
 
 
-# Combine plots
-ggarrange(np_stationsplot, pp_stationsplot, pj_stationsplot,
+# Combine abundance plots
+p1 <- ggarrange(np_stationsplot, pp_stationsplot, pj_stationsplot,
   ncol = 3, nrow = 1, common.legend = TRUE, legend = "right",
   labels = c("Ninigret Pond", "Potter Pond", "Point Judith Pond")) +
   theme(
@@ -1474,8 +1469,114 @@ ggarrange(np_stationsplot, pp_stationsplot, pj_stationsplot,
     panel.background = element_rect(fill = "white", color = "white")  # White background for the panels
   )
 
+
+## Ninigret occurrence
+
+# Plot the map
+np_stationsplot <- ggplot() +
+  geom_sf(data = np_map$osm_multipolygons, fill = "gray80", color = "gray50") +
+  coord_sf(xlim = c(np_bbox[1], np_bbox[3]), ylim = c(np_bbox[2], np_bbox[4])) +
+  geom_point(data = station_effects1, 
+    aes(x = lon, y = lat, color = posneg, size = abs(0.5 - occurrence)),
+    alpha = 0.5) +
+  geom_point(data = station_effects2,
+    aes(x = lon, y = lat, color = posneg, size = abs(0.5 - occurrence)),
+    alpha = 1) +
+  ggtitle("") +
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks = c(-71.7, -71.67, -71.64)) +
+  scale_y_continuous(breaks = c(41.34, 41.36, 41.38)) +
+  scale_size_continuous(breaks = c(0.03, 0.06, 0.09, 0.12)) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = "white"),  # White panel background
+    plot.background = element_rect(fill = "white", color = "white")   # White overall plot background
+  ) +
+  guides(
+    fill = guide_none(),
+    color = guide_none(),
+    size = guide_legend(title = "Occurrence\nEffect Size")
+  )
+
+
+## Potter
+
+# Plot the map
+pp_stationsplot <- ggplot() +
+  geom_sf(data = pp_map$osm_multipolygons, fill = "gray80", color = "gray50") +
+  coord_sf(xlim = c(pp_bbox[1], pp_bbox[3]), ylim = c(pp_bbox[2], pp_bbox[4])) +
+  geom_point(data = station_effects1,
+    aes(x = lon, y = lat, color = posneg, size = abs(0.5 - occurrence)),
+    alpha = 0.5) +
+  geom_point(data = station_effects2,
+    aes(x = lon, y = lat, color = posneg, size = abs(0.5 - occurrence)),
+    alpha = 1) +
+  ggtitle("") +
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks = c(-71.54, -71.53)) +
+  scale_y_continuous(breaks = c(41.37, 41.38, 41.39, 41.4)) +
+  scale_size_continuous(breaks = c(0.03, 0.06, 0.09, 0.12)) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = "white"),  # White panel background
+    plot.background = element_rect(fill = "white", color = "white")   # White overall plot background
+  ) +
+  guides(
+    fill = guide_none(),
+    color = guide_none(),
+    size = guide_legend(title = "Occurrence\nEffect Size")
+  )
+
+
+## Point Judith
+
+# Plot the map
+pj_stationsplot <- ggplot() +
+  geom_sf(data = pj_map$osm_multipolygons, fill = "gray80", color = "gray50") +
+  coord_sf(xlim = c(pj_bbox[1], pj_bbox[3]), ylim = c(pj_bbox[2], pj_bbox[4])) +
+  geom_point(data = station_effects1,
+    aes(x = lon, y = lat, color = posneg, size = abs(0.5 - occurrence)),
+    alpha = 0.5) +
+  geom_point(data = station_effects2,
+    aes(x = lon, y = lat, color = posneg, size = abs(0.5 - occurrence)),
+    alpha = 1) +
+  ggtitle("") +
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks = c(-71.51, -71.49)) +
+  scale_y_continuous(breaks = c(41.39, 41.41, 41.43)) +
+  scale_size_continuous(breaks = c(0.03, 0.06, 0.09, 0.12)) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = "white"),  # White panel background
+    plot.background = element_rect(fill = "white", color = "white")   # White overall plot background
+  ) +
+  guides(
+    fill = guide_none(),
+    color = guide_legend(),
+    size = guide_legend(title = "Occurrence\nEffect Size")
+  )
+
+
+# Combine plots
+p2 <- ggarrange(np_stationsplot, pp_stationsplot, pj_stationsplot,
+  ncol = 3, nrow = 1, common.legend = TRUE, legend = "right") +
+  theme(
+    plot.background = element_rect(fill = "white", color = "white"),  # White background for the whole arrangement
+    panel.background = element_rect(fill = "white", color = "white")  # White background for the panels
+  )
+
+
+# Combine abundance and occurrence
+ggarrange(p1, p2,
+  ncol = 1, nrow = 2)
+
 # Save plot
-ggsave("figures/04_station-effects-map.png", width = 12, height = 4, units = "in", dpi = 600)
+ggsave("figures/04_station-effects-map.png", width = 10, height = 8, units = "in", dpi = 600)
+
+
 
 
 ##### Fig - Abundance Index #####
