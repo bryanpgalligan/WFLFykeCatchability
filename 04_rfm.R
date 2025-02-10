@@ -1381,7 +1381,7 @@ np_stationsplot <- ggplot() +
   ) +
   guides(
     fill = guide_none(),
-    color = guide_legend(title = "Effect"),
+    color = guide_none(),
     size = guide_legend(title = "Abundance\nEffect Size")
   )
 
@@ -1418,7 +1418,7 @@ pp_stationsplot <- ggplot() +
   ) +
   guides(
     fill = guide_none(),
-    color = guide_legend(title = "Effect"),
+    color = guide_none(),
     size = guide_legend(title = "Abundance\nEffect Size")
   )
 
@@ -1455,15 +1455,14 @@ pj_stationsplot <- ggplot() +
   ) +
   guides(
     fill = guide_none(),
-    color = guide_legend(title = "Effect"),
+    color = guide_none(),
     size = guide_legend(title = "Abundance\nEffect Size")
   )
 
 
 # Combine abundance plots
 p1 <- ggarrange(np_stationsplot, pp_stationsplot, pj_stationsplot,
-  ncol = 3, nrow = 1, common.legend = TRUE, legend = "right",
-  labels = c("Ninigret Pond", "Potter Pond", "Point Judith Pond")) +
+  ncol = 3, nrow = 1, common.legend = TRUE, legend = "right") +
   theme(
     plot.background = element_rect(fill = "white", color = "white"),  # White background for the whole arrangement
     panel.background = element_rect(fill = "white", color = "white")  # White background for the panels
@@ -1495,7 +1494,7 @@ np_stationsplot <- ggplot() +
   ) +
   guides(
     fill = guide_none(),
-    color = guide_none(),
+    color = guide_legend(title = "Effect"),
     size = guide_legend(title = "Occurrence\nEffect Size")
   )
 
@@ -1525,7 +1524,7 @@ pp_stationsplot <- ggplot() +
   ) +
   guides(
     fill = guide_none(),
-    color = guide_none(),
+    color = guide_legend(title = "Effect"),
     size = guide_legend(title = "Occurrence\nEffect Size")
   )
 
@@ -1555,14 +1554,15 @@ pj_stationsplot <- ggplot() +
   ) +
   guides(
     fill = guide_none(),
-    color = guide_legend(),
+    color = guide_legend(title = "Effect"),
     size = guide_legend(title = "Occurrence\nEffect Size")
   )
 
 
 # Combine plots
 p2 <- ggarrange(np_stationsplot, pp_stationsplot, pj_stationsplot,
-  ncol = 3, nrow = 1, common.legend = TRUE, legend = "right") +
+  ncol = 3, nrow = 1, common.legend = TRUE, legend = "right",
+  labels = c("Ninigret Pond", "Potter Pond", "Point Judith Pond")) +
   theme(
     plot.background = element_rect(fill = "white", color = "white"),  # White background for the whole arrangement
     panel.background = element_rect(fill = "white", color = "white")  # White background for the panels
@@ -1570,7 +1570,7 @@ p2 <- ggarrange(np_stationsplot, pp_stationsplot, pj_stationsplot,
 
 
 # Combine abundance and occurrence
-ggarrange(p1, p2,
+ggarrange(p2, p1,
   ncol = 1, nrow = 2)
 
 # Save plot
