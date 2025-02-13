@@ -230,13 +230,94 @@ max(fyke_cvars$wind_m.s, na.rm = TRUE)
 tags <- read_excel("data/raw-data/WinterFlounder.xlsx")
 
 # Filter for event id's containing PJ
-tags <- tags %>%
+tags_pj <- tags %>%
   filter(str_detect(Event_ID, "PJ"))
 
 # Count tagged fish
-table(tags$Tagged_YN)
+table(tags_pj$Tagged_YN)
 
 # Count fish with a value in Tag_Recapture_Location_1_Lat
-table(is.na(tags$Tag_Recapture_Location_1_Lat))
+table(is.na(tags_pj$Tag_Recapture_Location_1_Lat))
+
+# Count dead fish
+table(tags$Dead_YN)
+
+# Mean length
+mean(flounder$length_cm, na.rm = TRUE)
+se.mean(flounder$length_cm)
+
+# Plot temp and DOY
+ggplot(fyke_cvars, aes(x = haul.date_jul, y = water.temp_c)) +
+  geom_point() +
+  labs(x = "Day of Year", y = "Water Temperature (C)") +
+  theme_pubr()
+
+# Temp
+temp <- filter(fyke_cvars, water.temp_c >= 9.5)
+
+# Convert minimum julian day to date
+as.Date(min(temp$haul.date_jul), origin = "2011-11-01")
+
+# Water temp range
+mean(fyke$range.water.temp_c, na.rm = TRUE)
+se.mean(fyke$range.water.temp_c)
+min(fyke$range.water.temp_c, na.rm = TRUE)
+max(fyke$range.water.temp_c, na.rm = TRUE)
+
+# Water temp skewness
+mean(fyke$skewness.water.temp, na.rm = TRUE)
+se.mean(fyke$skewness.water.temp)
+min(fyke$skewness.water.temp, na.rm = TRUE)
+max(fyke$skewness.water.temp, na.rm = TRUE)
+
+# Water temp kurtosis
+mean(fyke$kurtosis.water.temp, na.rm = TRUE)
+se.mean(fyke$kurtosis.water.temp)
+min(fyke$kurtosis.water.temp, na.rm = TRUE)
+max(fyke$kurtosis.water.temp, na.rm = TRUE)
+
+# Water temp bimodality
+mean(fyke$bimodality.water.temp, na.rm = TRUE)
+se.mean(fyke$bimodality.water.temp)
+min(fyke$bimodality.water.temp, na.rm = TRUE)
+max(fyke$bimodality.water.temp, na.rm = TRUE)
+
+# Delta salinity
+mean(fyke$delta.salinity_ppt, na.rm = TRUE)
+se.mean(fyke$delta.salinity_ppt)
+min(fyke$delta.salinity_ppt, na.rm = TRUE)
+max(fyke$delta.salinity_ppt, na.rm = TRUE)
+
+# Dissolved oxygen
+fyke19 <- read.csv("data/clean-data/03_FykeSets_CandidateVars_2019.csv")
+mean(fyke19$do_mg.l, na.rm = TRUE)
+se.mean(fyke19$do_mg.l)
+min(fyke19$do_mg.l, na.rm = TRUE)
+max(fyke19$do_mg.l, na.rm = TRUE)
+
+# Delta DO
+mean(fyke19$delta.do_mg.l.day, na.rm = TRUE)
+se.mean(fyke19$delta.do_mg.l.day)
+min(fyke19$delta.do_mg.l.day, na.rm = TRUE)
+max(fyke19$delta.do_mg.l.day, na.rm = TRUE)
+
+# Depth range
+mean(fyke19$range.depth_m, na.rm = TRUE)
+se.mean(fyke19$range.depth_m)
+min(fyke19$range.depth_m, na.rm = TRUE)
+max(fyke19$range.depth_m, na.rm = TRUE)
+
+# Min water temp
+mean(fyke$min.water.temp_c, na.rm = TRUE)
+se.mean(fyke$min.water.temp_c)
+min(fyke$min.water.temp_c, na.rm = TRUE)
+max(fyke$min.water.temp_c, na.rm = TRUE)
+
+# Max water temp
+mean(fyke$max.water.temp_c, na.rm = TRUE)
+se.mean(fyke$max.water.temp_c)
+min(fyke$max.water.temp_c, na.rm = TRUE)
+max(fyke$max.water.temp_c, na.rm = TRUE)
+
 
 
