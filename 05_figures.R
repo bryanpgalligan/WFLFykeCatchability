@@ -224,6 +224,19 @@ se.mean(fyke_cvars$wind_m.s)
 min(fyke_cvars$wind_m.s, na.rm = TRUE)
 max(fyke_cvars$wind_m.s, na.rm = TRUE)
 
+## Count tagged PJ flounder
 
+# Load raw data
+tags <- read_excel("data/raw-data/WinterFlounder.xlsx")
+
+# Filter for event id's containing PJ
+tags <- tags %>%
+  filter(str_detect(Event_ID, "PJ"))
+
+# Count tagged fish
+table(tags$Tagged_YN)
+
+# Count fish with a value in Tag_Recapture_Location_1_Lat
+table(is.na(tags$Tag_Recapture_Location_1_Lat))
 
 
