@@ -1,7 +1,7 @@
 ## Additional figures
 
 ## Load data
-flounder<- read.csv("data/clean-data/02_FishLengths.csv")
+flounder <- read.csv("data/clean-data/02_FishLengths.csv")
 fyke <- read_csv("data/clean-data/02_FykeSets_Complete.csv")
 fyke_cvars <- read_csv("data/clean-data/03_FykeSets_CandidateVars_1999.csv")
 
@@ -94,11 +94,10 @@ write.csv(pp, "tables/05_effort_by_station_pp.csv", row.names = FALSE, na = "")
 
 
 
-## Length distributions for all three ponds in recent years with good effort
+## Length distributions for all three ponds
 
-# Filter data for years beginning in 2020
-data <- flounder %>%
-  filter(year >= 2020)
+# Temporary data file
+data <- flounder
 
 # Rename ponds
 for(i in 1:nrow(data)){
@@ -124,25 +123,7 @@ ggplot(data, aes(x = length_cm, fill = pond)) +
   theme(legend.title = element_blank())
 
 # Save density plot
-ggsave("figures/05_lengths-since-2020.png", width = 8, height = 6, units = "in")
-
-
-
-
-## Length distribution for PJ pond in first five years
-
-# Subset data
-data <- flounder %>%
-  filter(year <= 2003, pond == "PJ")
-
-# Plot density distribution
-ggplot(data, aes(x = length_cm)) +
-  geom_density(fill = "#0C7BDC", alpha = 0.5) +
-  labs(x = "Length (cm)", y = "Density") +
-  theme_pubr()
-
-# Save plot
-ggsave("figures/05_lengths-before-2003.png", width = 8, height = 6, units = "in")
+ggsave("figures/05_length-distributions.png", width = 8, height = 6, units = "in")
 
 
 
@@ -224,20 +205,16 @@ se.mean(fyke_cvars$wind_m.s)
 min(fyke_cvars$wind_m.s, na.rm = TRUE)
 max(fyke_cvars$wind_m.s, na.rm = TRUE)
 
-## Count tagged PJ flounder
+## Count tagged flounder
 
 # Load raw data
 tags <- read_excel("data/raw-data/WinterFlounder.xlsx")
 
-# Filter for event id's containing PJ
-tags_pj <- tags %>%
-  filter(str_detect(Event_ID, "PJ"))
-
 # Count tagged fish
-table(tags_pj$Tagged_YN)
+table(tags$Tagged_YN)
 
 # Count fish with a value in Tag_Recapture_Location_1_Lat
-table(is.na(tags_pj$Tag_Recapture_Location_1_Lat))
+table(is.na(tags$Tag_Recapture_Location_1_Lat))
 
 # Count dead fish
 table(tags$Dead_YN)
