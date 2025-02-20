@@ -94,7 +94,7 @@ vars_1999_binary <- ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) 
   theme_light() +
   coord_flip() +
   xlab("") +
-  ylab("Mean Decrease in Accuracy") +
+  ylab("Mean Decrease in Accuracy (%)") +
   ggtitle("Classification Model") +
   scale_size_continuous(breaks = scales::pretty_breaks(n = 3)) +
   theme_pubr() +
@@ -334,7 +334,7 @@ vars_1999_freq <- ggplot(vimportance, aes(x = var, y = `%IncMSE`)) +
   theme_light() +
   coord_flip() +
   xlab("") +
-  ylab("% Increase in MSE") +
+  ylab("Increase in MSE (%)") +
   ggtitle("Regression Model") +
   scale_size_continuous(breaks = scales::pretty_breaks(n = 3)) +
   theme_pubr() +
