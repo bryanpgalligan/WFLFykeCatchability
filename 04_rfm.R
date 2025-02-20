@@ -1620,7 +1620,7 @@ ggplot(mean_abundance, aes(x = haul.winter)) +
   scale_color_manual(values = c("Mean" = "black", "Corrected" = "blue"), guide = guide_legend(title = NULL))
 
 # Save plot
-ggsave("figures/04_abundance-index.png", width = 6, height = 4, units = "in", dpi = 600)
+ggsave("figures/04_abundance-index.png", width = 4, height = 3, units = "in", dpi = 600)
 
 
 

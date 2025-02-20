@@ -36,7 +36,7 @@ ggplot(data, aes(x = haul.winter, y = n, fill = pond)) +
   theme(legend.title = element_blank())
 
 # Save bar plot
-ggsave("figures/05_effort_by_pond.png", width = 8, height = 6, units = "in")
+ggsave("figures/05_effort_by_pond.png", width = 6, height = 4, units = "in")
 
 
 
@@ -123,7 +123,7 @@ ggplot(data, aes(x = length_cm, fill = pond)) +
   theme(legend.title = element_blank())
 
 # Save density plot
-ggsave("figures/05_length-distributions.png", width = 8, height = 6, units = "in")
+ggsave("figures/05_length-distributions.png", width = 4, height = 4, units = "in")
 
 
 
