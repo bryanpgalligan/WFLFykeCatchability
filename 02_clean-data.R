@@ -15,6 +15,20 @@ round2 <- function(x, digits = 0) {  # Function to always round 0.5 up
   z * posneg
 }
 
+# Function to find SE (standard error) of the mean of a vector
+se.mean <- function(x){
+  
+  # If there are NA in x
+  if(sum(is.na(x)) > 0){
+    
+    # Remove NA
+    x <- na.omit(x)
+  }
+  
+  sd(x)/sqrt(length(x))
+  
+}
+
 
 
 ##### Fyke Data #####
@@ -191,11 +205,14 @@ weather <- pivot_wider(weather, names_from = code, values_from = c(avg.wind_m.s,
 # Create composite columns
 weather$avg.temp_c <- NA
 weather$avg.temp_station <- NA
+weather$avg.temp.distance_km <- NA
 weather$avg.temp_type <- NA
 weather$precip_mm <- NA
 weather$precip_station <- NA
+weather$precip.distance_km <- NA
 weather$avg.wind_m.s <- NA
 weather$avg.wind_station <- NA
+weather$wind.distance_km <- NA
 weather$max.temp_c <- NA
 weather$max.temp_station <- NA
 weather$min.temp_c <- NA
@@ -210,6 +227,7 @@ for (i in 1:nrow(weather)){
     if (!is.na(weather[[paste0("avg.temp_c_", j)]][i])){
       weather$avg.temp_c[i] <- weather[[paste0("avg.temp_c_", j)]][i]
       weather$avg.temp_station[i] <- j
+      weather$avg.temp.distance_km[i] <- stations$distance[stations$code == j] / 1000
       weather$avg.temp_type[i] <- "hrly"
       break
     }
@@ -220,6 +238,7 @@ for (i in 1:nrow(weather)){
     if (!is.na(weather[[paste0("precip_mm_", j)]][i])){
       weather$precip_mm[i] <- weather[[paste0("precip_mm_", j)]][i]
       weather$precip_station[i] <- j
+      weather$precip.distance_km[i] <- stations$distance[stations$code == j] / 1000
       break
     }
   }
@@ -229,6 +248,7 @@ for (i in 1:nrow(weather)){
     if (!is.na(weather[[paste0("avg.wind_m.s_", j)]][i])){
       weather$avg.wind_m.s[i] <- weather[[paste0("avg.wind_m.s_", j)]][i]
       weather$avg.wind_station[i] <- j
+      weather$wind.distance_km[i] <- stations$distance[stations$code == j] / 1000
       break
     }
   }
@@ -256,6 +276,7 @@ for (i in 1:nrow(weather)){
     if (!is.na(weather$max.temp_c[i]) & !is.na(weather$min.temp_c[i])){
       weather$avg.temp_c[i] <- (weather$max.temp_c[i] + weather$min.temp_c[i]) / 2
       weather$avg.temp_station[i] <- weather$max.temp_station[i]
+      weather$avg.temp.distance_km[i] <- stations$distance[stations$code == weather$max.temp_station[i]] / 1000
       weather$avg.temp_type[i] <- "hilo"
     }
   }
@@ -266,6 +287,7 @@ for (i in 1:nrow(weather)){
       if (!is.na(weather[[paste0("obs.temp_c_", j)]][i])){
         weather$avg.temp_c[i] <- weather[[paste0("obs.temp_c_", j)]][i]
         weather$avg.temp_station[i] <- j
+        weatheer$avg.temp.distance_km[i] <- stations$distance[stations$code == j] / 1000
         weather$avg.temp_type[i] <- "obs"
         break
       }
@@ -277,9 +299,9 @@ for (i in 1:nrow(weather)){
 # Select desired columns
 weather <- select(weather,
   date,
-  avg.temp_c, avg.temp_type, avg.temp_station,
-  precip_mm, precip_station,
-  avg.wind_m.s, avg.wind_station,
+  avg.temp_c, avg.temp_type, avg.temp_station, avg.temp.distance_km,
+  precip_mm, precip_station, precip.distance_km,
+  avg.wind_m.s, avg.wind_station, wind.distance_km,
   max.temp_c, max.temp_station,
   min.temp_c, min.temp_station,
   temp.range_c)
@@ -292,6 +314,14 @@ weather$heating.degrees_day <- ifelse(weather$avg.temp_c < 18, 18 - weather$avg.
 
 # Summarize weather data
 gt_plt_summary(weather, "Weather Summary")
+
+# Summarize weather station distances
+mean(weather$avg.temp.distance_km, na.rm = TRUE)
+se.mean(weather$avg.temp.distance_km)
+mean(weather$precip.distance_km, na.rm = TRUE)
+se.mean(weather$precip.distance_km)
+mean(weather$wind.distance_km, na.rm = TRUE)
+se.mean(weather$wind.distance_km)
 
 
 
