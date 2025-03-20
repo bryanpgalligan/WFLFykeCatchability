@@ -205,20 +205,6 @@ se.mean(fyke_cvars$wind_m.s)
 min(fyke_cvars$wind_m.s, na.rm = TRUE)
 max(fyke_cvars$wind_m.s, na.rm = TRUE)
 
-## Count tagged flounder
-
-# Load raw data
-tags <- read_excel("data/raw-data/WinterFlounder.xlsx")
-
-# Count tagged fish
-table(tags$Tagged_YN)
-
-# Count fish with a value in Tag_Recapture_Location_1_Lat
-table(is.na(tags$Tag_Recapture_Location_1_Lat))
-
-# Count dead fish
-table(tags$Dead_YN)
-
 # Mean length
 mean(flounder$length_cm, na.rm = TRUE)
 se.mean(flounder$length_cm)
