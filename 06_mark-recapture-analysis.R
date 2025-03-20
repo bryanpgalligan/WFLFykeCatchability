@@ -3,13 +3,10 @@
 ## Count tagged flounder
 
 # Load raw data
-tags <- read_excel("data/raw-data/WinterFlounder.xlsx")
+tags <- read_excel("data/raw-data/IndividualWFLCaptured.xlsx")
 
-# Count tagged fish
+# Count tagging events
 table(tags$Tagged_YN)
-
-# Count fish with a value in Tag_Recapture_Location_1_Lat
-table(is.na(tags$Tag_Recapture_Location_1_Lat))
 
 # Count dead fish
 table(tags$Dead_YN)
@@ -21,6 +18,7 @@ table(tags$Dead_YN)
 ## Load data
 fish <- read_excel("data/raw-data/IndividualWFLCaptured.xlsx")
 recaps <- read_excel("data/raw-data/RecaptureLocs.xlsx")
+
 
 
 
@@ -51,7 +49,7 @@ gmean <- function(x) exp(mean(log(x)))
 #############################################
 ## This section calculate days at large, growth, and distance between release and capture
 #############################################
-df <- read_xlsx("Recapture_Locs.xlsx")
+df <- read_xlsx("data/raw-data/RecaptureLocs.xlsx")
 df <- df %>%
   rename(
     rel_lat = Latitude,
@@ -64,8 +62,7 @@ df <- df %>%
     rec_len = Tag_Recapture_Length_1
   )
 ### This below needs to be edited - not reading in file correctly, need to set column types
-tagged <- read_xlsx("Tagging_Data.xlsx")
-tagged <- tagged[which (tagged$Haul_Year_Winter<2025),]
+tagged <- read_xlsx("data/raw-data/IndividualWFLCaptured.xlsx")
 
 ##Make column names more better
 # names(df)[5] <- "rel_lat"
