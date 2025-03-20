@@ -1,3 +1,36 @@
+## Previous code ##
+
+## Count tagged flounder
+
+# Load raw data
+tags <- read_excel("data/raw-data/WinterFlounder.xlsx")
+
+# Count tagged fish
+table(tags$Tagged_YN)
+
+# Count fish with a value in Tag_Recapture_Location_1_Lat
+table(is.na(tags$Tag_Recapture_Location_1_Lat))
+
+# Count dead fish
+table(tags$Dead_YN)
+
+################################################################################
+# The actual draft code is below this line
+################################################################################
+
+## Load data
+fish <- read_excel("data/raw-data/IndividualWFLCaptured.xlsx")
+recaps <- read_excel("data/raw-data/RecaptureLocs.xlsx")
+
+
+
+
+
+
+########################################################
+# Work from Rich is below this line
+########################################################
+
 #### Map the relaease and recapture locations of winter flounder ####
 library(ggmap)
 library(tidyverse)
