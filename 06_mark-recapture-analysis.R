@@ -19,8 +19,18 @@ table(tags$Dead_YN)
 fish <- read_excel("data/raw-data/IndividualWFLCaptured.xlsx")
 recaps <- read_excel("data/raw-data/RecaptureLocs.xlsx")
 
+# Temp - clean data for new "raw" data files
 
+## Fish data
 
+# Remove current season
+fish <- filter(fish, Haul_Year_Winter < 2025)
+
+# Remove surplus columns
+fish <- fish[,1:9]
+
+# # overwrite
+# write_excel_csv(fish, "data/raw-data/IndividualWFLCaptured.xlsx")
 
 
 
