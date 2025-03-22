@@ -1,21 +1,25 @@
 ---
-title: "Winter Flounder Catch Rates: Fyke Survey Annual Report"
+title: "Winter Flounder Catch Rates"
+subtitle: "Fyke Survey Annual Report"
 author: "B. P. Galligan, R. G. Balouskus, and M. C. McManus"
-date: today
 format: pdf
 editor: visual
 ---
 
 ```{r}
 #| echo: false
+#| output: false
 
 ## This code chunk loads and cleans the data for analysis
 
 # Load packages
 library(ggpubr)
+library(iml)
 library(lubridate)
+library(osmdata)
 library(randomForest)
 library(readxl)
+library(sf)
 library(tidyverse)
 
 # Import data
@@ -67,16 +71,28 @@ fyke <- fyke %>% drop_na()
 # Make all columns numeric or factor
 fyke$Station_ID <- as.factor(fyke$Station_ID)
 fyke$Pond_ID <- as.factor(fyke$Pond_ID)
+fyke$WFL_Caught <- as.factor(fyke$WFL_Caught)
 
 ```
 
+```{r}
+#| echo: false
+
+print(paste("Survey Year:", max(fyke$Haul_Year_Winter)))
+
+print(paste("This report was generated on:", Sys.Date()))
+
+```
+
+
 ## Catch rates
+
+### Combined index
 
 ```{r}
 #| echo: false
 
 ## This code chunk calculates an abundance index for all ponds
-
 
 ## Run RFM
 
@@ -108,7 +124,8 @@ rf <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
 fyke$Haul_Year_Winter <- as.integer(fyke$Haul_Year_Winter)
 
 # Calculate partial dependence
-pd <- bind_rows(partialPlot(rf, fyke, x.var = "Haul_Year_Winter", n.pt = 26, plot = FALSE))
+pd <- bind_rows(partialPlot(rf, fyke, x.var = "Haul_Year_Winter",
+  n.pt = length(unique(fyke$Haul_Year_Winter)), plot = FALSE))
 
 # Create custom rug to show all sampling by date
 rug <- fyke %>%
@@ -139,34 +156,744 @@ ggplot(pd, aes(x = x, y = y)) +
   xlab("Year") +
   ylab("Abundance (no. per haul)") +
   ggtitle("Winter Flounder Abundance", "RI Coastal Ponds") +
+  coord_cartesian(ylim = c(0, NA)) +
   scale_y_continuous(expand = c(0, 0)) +
   theme_pubr() +
-  coord_cartesian(xlim = c(1999, 2024), ylim = c(0, 30))
   theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
 
 ```
 
 
-### Combined index
+
 
 ### Point Judith Pond
 
+```{r}
+#| echo: false
+
+## This code chunk calculates an abundance index for all ponds
+
+## Run RFM
+
+# Data frame for RFM
+df <- fyke %>% select(-WFL_Caught)
+
+# Subset for point judith pond only
+df <- df %>% filter(Pond_ID == "PJ")
+
+# Remove pond column
+df <- df %>% select(-Pond_ID)
+
+# Bootstrap sample for model training
+set.seed(12345)
+df_boot <- slice_sample(df, prop = 1, replace = TRUE)
+
+# Out of bag sample for testing
+df_oob <- setdiff(df, df_boot)
+
+# Data for RFM
+x <- select(df_boot, -WFL_Frequency)
+y <- df_boot$WFL_Frequency
+xtest <- select(df_oob, -WFL_Frequency)
+ytest <- df_oob$WFL_Frequency
+
+# Random forest model
+rf <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 4,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+
+## PDP Abundance Index
+
+# Make haul winter an integer
+df$Haul_Year_Winter <- as.integer(df$Haul_Year_Winter)
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf, df, x.var = "Haul_Year_Winter",
+  n.pt = length(unique(df$Haul_Year_Winter)), plot = FALSE))
+
+# Create custom rug to show all sampling by date
+rug <- df %>%
+  select(Haul_Year_Winter, Haul_Date_Jul)
+
+# Prepare empty vector for date
+rug$Haul_Date <- NA
+
+# Convert Julian date to date object
+for (i in 1:nrow(rug)){
+  rug$Haul_Date[i] <- as.Date(rug$Haul_Date_Jul[i],
+    origin = paste0(rug$Haul_Year_Winter[i] - 1, "-11-01"))
+}
+
+# Make Haul Date a date object
+rug$Haul_Date <- as.Date(rug$Haul_Date, format = "%Y-%m-%d")
+
+# Convert Haul Date to decimal years
+rug$Haul_Date <- as.numeric(
+  year(rug$Haul_Date) + (yday(rug$Haul_Date) - 1) / 
+    ifelse(leap_year(rug$Haul_Date), 366, 365))
+
+# Plot index
+ggplot(pd, aes(x = x, y = y)) +
+  geom_line(color = "blue", linewidth = 1) +
+  geom_rug(data = rug, aes(x = Haul_Date), inherit.aes = FALSE,
+    sides = "b", alpha = 0.1) +
+  xlab("Year") +
+  ylab("Abundance (no. per haul)") +
+  ggtitle("Winter Flounder Abundance", "Point Judith Pond") +
+  coord_cartesian(ylim = c(0, NA)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr() +
+  theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+```
+
+
 ### Potter Pond
 
+```{r}
+#| echo: false
+
+## This code chunk calculates an abundance index for all ponds
+
+## Run RFM
+
+# Data frame for RFM
+df <- fyke %>% select(-WFL_Caught)
+
+# Subset for point judith pond only
+df <- df %>% filter(Pond_ID == "PP")
+
+# Remove pond column
+df <- df %>% select(-Pond_ID)
+
+# Subset for post 2010
+df <- df %>% filter(Haul_Year_Winter > 2009)
+
+# Bootstrap sample for model training
+set.seed(12345)
+df_boot <- slice_sample(df, prop = 1, replace = TRUE)
+
+# Out of bag sample for testing
+df_oob <- setdiff(df, df_boot)
+
+# Data for RFM
+x <- select(df_boot, -WFL_Frequency)
+y <- df_boot$WFL_Frequency
+xtest <- select(df_oob, -WFL_Frequency)
+ytest <- df_oob$WFL_Frequency
+
+# Random forest model
+rf <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 4,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+
+## PDP Abundance Index
+
+# Make haul winter an integer
+df$Haul_Year_Winter <- as.integer(df$Haul_Year_Winter)
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf, df, x.var = "Haul_Year_Winter",
+  n.pt = length(unique(df$Haul_Year_Winter)), plot = FALSE))
+
+# Create custom rug to show all sampling by date
+rug <- df %>%
+  select(Haul_Year_Winter, Haul_Date_Jul)
+
+# Prepare empty vector for date
+rug$Haul_Date <- NA
+
+# Convert Julian date to date object
+for (i in 1:nrow(rug)){
+  rug$Haul_Date[i] <- as.Date(rug$Haul_Date_Jul[i],
+    origin = paste0(rug$Haul_Year_Winter[i] - 1, "-11-01"))
+}
+
+# Make Haul Date a date object
+rug$Haul_Date <- as.Date(rug$Haul_Date, format = "%Y-%m-%d")
+
+# Convert Haul Date to decimal years
+rug$Haul_Date <- as.numeric(
+  year(rug$Haul_Date) + (yday(rug$Haul_Date) - 1) / 
+    ifelse(leap_year(rug$Haul_Date), 366, 365))
+
+# Plot index
+ggplot(pd, aes(x = x, y = y)) +
+  geom_line(color = "blue", linewidth = 1) +
+  geom_rug(data = rug, aes(x = Haul_Date), inherit.aes = FALSE,
+    sides = "b", alpha = 0.1) +
+  xlab("Year") +
+  ylab("Abundance (no. per haul)") +
+  ggtitle("Winter Flounder Abundance", "Potter Pond") +
+  coord_cartesian(ylim = c(0, 5)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr() +
+  theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+```
+
 ### Ninigret Pond
+
+```{r}
+#| echo: false
+
+## This code chunk calculates an abundance index for all ponds
+
+## Run RFM
+
+# Data frame for RFM
+df <- fyke %>% select(-WFL_Caught)
+
+# Subset for point judith pond only
+df <- df %>% filter(Pond_ID == "NP")
+
+# Remove pond column
+df <- df %>% select(-Pond_ID)
+
+# Bootstrap sample for model training
+set.seed(12345)
+df_boot <- slice_sample(df, prop = 1, replace = TRUE)
+
+# Out of bag sample for testing
+df_oob <- setdiff(df, df_boot)
+
+# Data for RFM
+x <- select(df_boot, -WFL_Frequency)
+y <- df_boot$WFL_Frequency
+xtest <- select(df_oob, -WFL_Frequency)
+ytest <- df_oob$WFL_Frequency
+
+# Random forest model
+rf <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 4,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+
+## PDP Abundance Index
+
+# Make haul winter an integer
+df$Haul_Year_Winter <- as.integer(df$Haul_Year_Winter)
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf, df, x.var = "Haul_Year_Winter",
+  n.pt = length(unique(df$Haul_Year_Winter)), plot = FALSE))
+
+# Create custom rug to show all sampling by date
+rug <- df %>%
+  select(Haul_Year_Winter, Haul_Date_Jul)
+
+# Prepare empty vector for date
+rug$Haul_Date <- NA
+
+# Convert Julian date to date object
+for (i in 1:nrow(rug)){
+  rug$Haul_Date[i] <- as.Date(rug$Haul_Date_Jul[i],
+    origin = paste0(rug$Haul_Year_Winter[i] - 1, "-11-01"))
+}
+
+# Make Haul Date a date object
+rug$Haul_Date <- as.Date(rug$Haul_Date, format = "%Y-%m-%d")
+
+# Convert Haul Date to decimal years
+rug$Haul_Date <- as.numeric(
+  year(rug$Haul_Date) + (yday(rug$Haul_Date) - 1) / 
+    ifelse(leap_year(rug$Haul_Date), 366, 365))
+
+# Plot index
+ggplot(pd, aes(x = x, y = y)) +
+  geom_line(color = "blue", linewidth = 1) +
+  geom_rug(data = rug, aes(x = Haul_Date), inherit.aes = FALSE,
+    sides = "b", alpha = 0.1) +
+  xlab("Year") +
+  ylab("Abundance (no. per haul)") +
+  ggtitle("Winter Flounder Abundance", "Ninigret Pond") +
+  coord_cartesian(ylim = c(0, NA)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr() +
+  theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+```
+
 
 ## Water temp
 
-Plot ALE, potentially including a scatterplot of the most recent year of water temp vs. catch.
+Plot PDP, including a scatter plot of the most recent year of water temp vs. catch.
 
-Descriptive stats comparing most recent year's temp in each pond to mean temp for first ten years of survey. Or comparing to an independent 2000-2010 baseline for each pond.
+```{r}
+#| echo: false
+
+## This code chunk calculates PDP for water temperature and plots most recent year's data
+
+## Run RFM
+
+# Data frame for RFM
+df <- fyke %>% select(-WFL_Caught)
+
+# Bootstrap sample for model training
+set.seed(12345)
+df_boot <- slice_sample(df, prop = 1, replace = TRUE)
+
+# Out of bag sample for testing
+df_oob <- setdiff(df, df_boot)
+
+# Data for RFM
+x <- select(df_boot, -WFL_Frequency)
+y <- df_boot$WFL_Frequency
+xtest <- select(df_oob, -WFL_Frequency)
+ytest <- df_oob$WFL_Frequency
+
+# Set Seed
+set.seed(12345)
+
+# Random forest model
+rf <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 4,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+
+## PDP Water Temp
+
+# Extract rug data
+rug <- select(df, Water_Temp_C)
+
+# Extract most recent year's data
+df2 <- df %>% filter(Haul_Year_Winter == max(Haul_Year_Winter))
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf, df, x.var = "Water_Temp_C",
+  n.pt = 50, plot = FALSE))
+
+# Plot PD with rug
+ggplot(df2, aes(x = Water_Temp_C, y = WFL_Frequency)) +
+  geom_point(alpha = 0.5) +
+  geom_line(data = pd, aes(x = x, y = y),
+    color = "blue", linewidth = 1, inherit.aes = FALSE) +
+  geom_rug(data = rug, aes(x = Water_Temp_C), inherit.aes = FALSE,
+    sides = "b", alpha = 0.1) +
+  xlab("Water Temp (°C)") +
+  ylab("Abundance (no. per haul)") +
+  ggtitle("Temperature Effect (Partial Dependence)", "RI Coastal Ponds") +
+  coord_cartesian(ylim = c(0, NA)) +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr() +
+  theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+```
+
+
+Descriptive stats comparing most recent year's temp in each pond to mean temp for all years prior to 2020.
+
+```{r}
+#| echo: false
+
+## This code chunk plots descriptive stats for water temperature
+
+# Point Judith
+df <- fyke %>% filter(Pond_ID == "PJ")
+
+ggplot(df, aes(group = Haul_Year_Winter, x = Haul_Year_Winter, y = Water_Temp_C)) +
+  geom_boxplot() +
+  geom_hline(yintercept = mean(df$Water_Temp_C[df$Haul_Year_Winter < 2020]),
+    linetype = "dashed", color = "red") +
+  xlab("Year") +
+  ylab("Water Temp (°C)") +
+  ggtitle("Water Temperature", "Point Judith Pond") +
+  theme_pubr() +
+  theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+# Potter Pond
+df <- fyke %>% filter(Pond_ID == "PP")
+
+ggplot(df, aes(group = Haul_Year_Winter, x = Haul_Year_Winter, y = Water_Temp_C)) +
+  geom_boxplot() +
+  geom_hline(yintercept = mean(df$Water_Temp_C[df$Haul_Year_Winter < 2020]),
+    linetype = "dashed", color = "red") +
+  xlab("Year") +
+  ylab("Water Temp (°C)") +
+  ggtitle("Water Temperature", "Potter Pond") +
+  theme_pubr() +
+  theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+# Ninigret Pond
+df <- fyke %>% filter(Pond_ID == "NP")
+
+ggplot(df, aes(group = Haul_Year_Winter, x = Haul_Year_Winter, y = Water_Temp_C)) +
+  geom_boxplot() +
+  geom_hline(yintercept = mean(df$Water_Temp_C[df$Haul_Year_Winter < 2020]),
+    linetype = "dashed", color = "red") +
+  xlab("Year") +
+  ylab("Water Temp (°C)") +
+  ggtitle("Water Temperature", "Ninigret Pond") +
+  theme_pubr() +
+  theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+
+```
+
+
 
 ## Station
 
-Compare ALE for last five years with ALE for everything before that.
+Compare ALE for last five years with ALE for everything before that. This uses the classification model, i.e. catch probability and not abundance.
+
+```{r}
+#| echo: false
+
+## This code chunk calculates accumulated local effects (ALE) of station on catch probability
+
+## Run RFM
+
+# Data frame for RFM
+df1 <- fyke %>%
+  select(-WFL_Frequency) %>%
+  filter(Haul_Year_Winter < 2020)
+df2 <- fyke %>%
+  select(-WFL_Frequency) %>%
+  filter(Haul_Year_Winter >= max(Haul_Year_Winter) - 4)
+
+# Bootstrap sample for model training
+set.seed(12345)
+df1_boot <- slice_sample(df1, prop = 1, replace = TRUE)
+set.seed(12345)
+df2_boot <- slice_sample(df2, prop = 1, replace = TRUE)
+
+# Out of bag sample for testing
+df1_oob <- setdiff(df1, df1_boot)
+df2_oob <- setdiff(df2, df2_boot)
+
+# Data for RFM
+x1 <- select(df1_boot, -WFL_Caught)
+x2 <- select(df2_boot, -WFL_Caught)
+y1 <- df1_boot$WFL_Caught
+y2 <- df2_boot$WFL_Caught
+xtest1 <- select(df1_oob, -WFL_Caught)
+xtest2 <- select(df2_oob, -WFL_Caught)
+ytest1 <- df1_oob$WFL_Caught
+ytest2 <- df2_oob$WFL_Caught
+
+# Set Seed
+set.seed(12345)
+
+# Baseline RFM
+rf1 <- randomForest(x = x1, y = y1, xtest = xtest1, ytest = ytest1,
+  ntree = 200, mtry = 5,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+# Set Seed
+set.seed(12345)
+
+# Last Five Years RFM
+rf2 <- randomForest(x = x2, y = y2, xtest = xtest2, ytest = ytest2,
+  ntree = 200, mtry = 5,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+
+## Calculate ALE
+
+# Predictor object to hold model and data
+predictor1 <- Predictor$new(rf1, data = x1, y = y1)
+predictor2 <- Predictor$new(rf2, data = x2, y = y2)
+
+# Calculate all effects using ALE
+effs1 <- FeatureEffects$new(predictor1, grid.size = 50)
+effs2 <- FeatureEffects$new(predictor2, grid.size = 50)
+
+# Extract rug data
+rug1 <- df1 %>% select(Station_ID)
+rug2 <- df2 %>% select(Station_ID)
+
+# Summarize rug as total number of samples per station
+rug1 <- rug1 %>% group_by(Station_ID) %>% summarise(n = n())
+rug2 <- rug2 %>% group_by(Station_ID) %>% summarise(n = n())
+
+# Extract rf effects for station
+ale1 <- effs1$results$Station_ID
+ale2 <- effs2$results$Station_ID
+
+# Limit to class = TRUE
+ale1 <- filter(ale1, .class == "TRUE")
+ale2 <- filter(ale2, .class == "TRUE")
+
+# Select columns
+ale1 <- select(ale1, .value, .borders)
+ale2 <- select(ale2, .value, .borders)
+
+# Rename columns
+colnames(ale1) <- c("Probability", "Station_ID")
+colnames(ale2) <- c("Probability", "Station_ID")
+
+# Add sample size to station_effects
+ale1 <- left_join(ale1, rug1, by = "Station_ID")
+ale2 <- left_join(ale2, rug2, by = "Station_ID")
+
+# Remove rows with no sample size
+ale1 <- filter(ale1, !is.na(n))
+ale2 <- filter(ale2, !is.na(n))
+
+
+## Map Station Effects
+
+# Import lat/lon
+stations <- read_excel("data/raw-data/FykeStations.xlsx")
+
+# Select columns
+stations <- select(stations, Station_ID, Latitude, Longitude)
+
+# Merge with station data
+ale1 <- left_join(ale1, stations, by = "Station_ID")
+ale2 <- left_join(ale2, stations, by = "Station_ID")
+
+# Group station effects by positive and negative
+ale1$posneg <- ifelse(ale1$Probability > 0, "Positive", "Negative")
+ale2$posneg <- ifelse(ale2$Probability > 0, "Positive", "Negative")
+
+# Add a pond column
+ale1$Pond <- substr(ale1$Station_ID, 1, 2)
+ale2$Pond <- substr(ale2$Station_ID, 1, 2)
+
+# Remove rows with NA
+ale1 <- filter(ale1, !is.na(Latitude))
+ale2 <- filter(ale2, !is.na(Latitude))
+
+# Split into two separate data frames, one with n<30 and one with n>=30
+ale1_small <- filter(ale1, n < 30)
+ale1_big <- filter(ale1, n >= 30)
+ale2_small <- filter(ale2, n < 30)
+ale2_big <- filter(ale2, n >= 30)
+
+```
 
 ### Point Judith Pond
 
+```{r}
+#| echo: false
+
+## This code chunk plots the ALE of station for Point Judith Pond
+
+# Define the bounding box for Point Judith Pond
+pj_bbox <- c(-71.518, 41.375, -71.49, 41.431)
+
+# Get OSM data for waterbodies
+pj_map <- opq(bbox = pj_bbox) %>%
+  add_osm_feature(key = 'natural', value = 'water') %>%
+  osmdata_sf()
+
+
+
+# Plot the historical data
+p1 <- ggplot() +
+  geom_sf(data = pj_map$osm_multipolygons, fill = "gray80", color = "gray50") +
+  coord_sf(xlim = c(pj_bbox[1], pj_bbox[3]), ylim = c(pj_bbox[2], pj_bbox[4])) +
+  geom_point(data = ale1_small,
+    aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
+    alpha = 0.5) +
+  geom_point(data = ale1_big,
+    aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
+    alpha = 1) +
+  ggtitle("Point Judith Pond", "Pre-2020") +
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks = c(-71.51, -71.49)) +
+  scale_y_continuous(breaks = c(41.39, 41.41, 41.43)) +
+  scale_size_continuous(breaks = c(0.03, 0.06, 0.09, 0.12)) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = "white"),  # White panel background
+    plot.background = element_rect(fill = "white", color = "white")   # White overall plot background
+  ) +
+  guides(
+    fill = guide_none(),
+    color = guide_legend(title = "Effect"),
+    size = guide_legend(title = "Probability")
+  )
+
+# Plot the new data
+p2 <- ggplot() +
+  geom_sf(data = pj_map$osm_multipolygons, fill = "gray80", color = "gray50") +
+  coord_sf(xlim = c(pj_bbox[1], pj_bbox[3]), ylim = c(pj_bbox[2], pj_bbox[4])) +
+  geom_point(data = ale2_small,
+    aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
+    alpha = 0.5) +
+  geom_point(data = ale2_big,
+    aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
+    alpha = 1) +
+  ggtitle("", 
+    paste(max(df2$Haul_Year_Winter) - 4, "to", max(df2$Haul_Year_Winter))) +
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks = c(-71.51, -71.49)) +
+  scale_y_continuous(breaks = c(41.39, 41.41, 41.43)) +
+  scale_size_continuous(breaks = c(0.03, 0.06, 0.09, 0.12)) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = "white"),  # White panel background
+    plot.background = element_rect(fill = "white", color = "white")   # White overall plot background
+  ) +
+  guides(
+    fill = guide_none(),
+    color = guide_legend(title = "Effect"),
+    size = guide_legend(title = "Probability")
+  )
+
+# Plot Point Judith
+ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
+
+```
+
+
 ### Potter Pond
 
+```{r}
+#| echo: false
+
+## This code chunk plots the ALE of station for Potter Pond
+
+# Define the bounding box for Potter Pond
+pp_bbox <- c(-71.545, 41.374, -71.5265, 41.40)
+
+# Get OSM data for waterbodies
+pp_map <- opq(bbox = pp_bbox) %>%
+  add_osm_feature(key = 'natural', value = 'water') %>%
+  osmdata_sf()
+
+# Plot the historical baseline
+p1 <- ggplot() +
+  geom_sf(data = pp_map$osm_multipolygons, fill = "gray80", color = "gray50") +
+  coord_sf(xlim = c(pp_bbox[1], pp_bbox[3]), ylim = c(pp_bbox[2], pp_bbox[4])) +
+  geom_point(data = ale1_small,
+    aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
+    alpha = 0.5) +
+  geom_point(data = ale1_big,
+    aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
+    alpha = 1) +
+  ggtitle("Potter Pond", "Pre-2020") +
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks = c(-71.54, -71.53)) +
+  scale_y_continuous(breaks = c(41.37, 41.38, 41.39, 41.4)) +
+  scale_size_continuous(breaks = c(0.03, 0.06, 0.09, 0.12)) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = "white"),  # White panel background
+    plot.background = element_rect(fill = "white", color = "white")   # White overall plot background
+  ) +
+  guides(
+    fill = guide_none(),
+    color = guide_legend(title = "Effect"),
+    size = guide_legend(title = "Probability")
+  )
+
+
+# Plot the new data
+p2 <- ggplot() +
+  geom_sf(data = pp_map$osm_multipolygons, fill = "gray80", color = "gray50") +
+  coord_sf(xlim = c(pp_bbox[1], pp_bbox[3]), ylim = c(pp_bbox[2], pp_bbox[4])) +
+  geom_point(data = ale2_small,
+    aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
+    alpha = 0.5) +
+  geom_point(data = ale2_big,
+    aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
+    alpha = 1) +
+  ggtitle("",
+    paste(max(df2$Haul_Year_Winter) - 4, "to", max(df2$Haul_Year_Winter))) +
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks = c(-71.54, -71.53)) +
+  scale_y_continuous(breaks = c(41.37, 41.38, 41.39, 41.4)) +
+  scale_size_continuous(breaks = c(0.03, 0.06, 0.09, 0.12)) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = "white"),  # White panel background
+    plot.background = element_rect(fill = "white", color = "white")   # White overall plot background
+  ) +
+  guides(
+    fill = guide_none(),
+    color = guide_legend(title = "Effect"),
+    size = guide_legend(title = "Probability")
+  )
+
+# Plot Potter Pond
+ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
+
+
+```
+
+
 ### Ninigret Pond
+
+```{r}
+#| echo: false
+
+## This code chunk plots the ALE of station for Ninigret Pond
+
+# Define the bounding box for Ninigret Pond
+np_bbox <- c(-71.7, 41.34, -71.626912, 41.385)
+
+# Get OSM data for waterbodies
+np_map <- opq(bbox = np_bbox) %>%
+  add_osm_feature(key = 'natural', value = 'water') %>%
+  osmdata_sf()
+
+# Plot the historical map
+p1 <- ggplot() +
+  geom_sf(data = np_map$osm_multipolygons, fill = "gray80", color = "gray50") +
+  coord_sf(xlim = c(np_bbox[1], np_bbox[3]), ylim = c(np_bbox[2], np_bbox[4])) +
+  geom_point(data = ale1_small, 
+    aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
+    alpha = 0.5) +
+  geom_point(data = ale1_big,
+    aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
+    alpha = 1) +
+  ggtitle("Ninigret Pond", "Pre-2020") +
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks = c(-71.7, -71.67, -71.64)) +
+  scale_y_continuous(breaks = c(41.34, 41.36, 41.38)) +
+  scale_size_continuous(breaks = c(0.03, 0.06, 0.09, 0.12)) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = "white"),  # White panel background
+    plot.background = element_rect(fill = "white", color = "white")   # White overall plot background
+  ) +
+  guides(
+    fill = guide_none(),
+    color = guide_legend(title = "Effect"),
+    size = guide_legend(title = "Probability")
+  )
+
+# Plot the new map
+p2 <- ggplot() +
+  geom_sf(data = np_map$osm_multipolygons, fill = "gray80", color = "gray50") +
+  coord_sf(xlim = c(np_bbox[1], np_bbox[3]), ylim = c(np_bbox[2], np_bbox[4])) +
+  geom_point(data = ale2_small, 
+    aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
+    alpha = 0.5) +
+  geom_point(data = ale2_big,
+    aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
+    alpha = 1) +
+  ggtitle("",
+    paste(max(df2$Haul_Year_Winter) - 4, "to", max(df2$Haul_Year_Winter))) +
+  xlab("") +
+  ylab("") +
+  scale_x_continuous(breaks = c(-71.7, -71.67, -71.64)) +
+  scale_y_continuous(breaks = c(41.34, 41.36, 41.38)) +
+  scale_size_continuous(breaks = c(0.03, 0.06, 0.09, 0.12)) +
+  theme_minimal() +
+  theme(
+    panel.background = element_rect(fill = "white", color = "white"),  # White panel background
+    plot.background = element_rect(fill = "white", color = "white")   # White overall plot background
+  ) +
+  guides(
+    fill = guide_none(),
+    color = guide_legend(title = "Effect"),
+    size = guide_legend(title = "Probability")
+  )
+
+# Plot Ninigret
+ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
+
+```
+
+
