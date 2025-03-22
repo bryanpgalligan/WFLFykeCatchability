@@ -1,32 +1,151 @@
 ---
 title: "Winter Flounder Catch Rates: Fyke Survey Annual Report"
 author: "B. P. Galligan, R. G. Balouskus, and M. C. McManus"
+date: today
 format: pdf
 editor: visual
 ---
 
-## Quarto
-
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
-
-## Running Code
-
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
-
 ```{r}
-1 + 1
+#| echo: false
+
+## This code chunk loads and cleans the data for analysis
+
+# Load packages
+library(ggpubr)
+library(lubridate)
+library(randomForest)
+library(readxl)
+library(tidyverse)
+
+# Import data
+fyke <-  read_excel("data/model-deployment/FykeSets_2024.xlsx")
+
+# Calculate Julian day
+fyke$Haul_Date <- as.POSIXlt(fyke$Haul_Date, format="%d-%m-%y")
+fyke$Haul_Date_Jul <- as.numeric(format(fyke$Haul_Date, "%j"))
+  
+# Convert Julian Day to be 1 at Nov 1 as that is earliest conceivable start date
+fyke$Haul_Date_Jul <- ifelse(fyke$Haul_Date_Jul < 200,
+  fyke$Haul_Date_Jul + 61, fyke$Haul_Date_Jul - 304)
+
+# Add water temp column
+fyke$Water_Temp_C <- NA
+
+# Fill in water temp column
+for (i in 1:nrow(fyke)){
+  
+  # If there is a haul and set temp available, use average
+  if (!is.na(fyke$Set_Water_Temp[i]) & !is.na(fyke$Haul_Water_Temp[i])){
+    fyke$Water_Temp_C[i] <- mean(c(fyke$Set_Water_Temp[i], fyke$Haul_Water_Temp[i]))
+  } else {
+  
+    # If only one temp is available, use that
+    if (!is.na(fyke$Set_Water_Temp[i])){
+      fyke$Water_Temp_C[i] <- fyke$Set_Water_Temp[i]
+    } else if (!is.na(fyke$Haul_Water_Temp[i])){
+      fyke$Water_Temp_C[i] <- fyke$Haul_Water_Temp[i]
+    }
+  }
+}
+
+# Select desired columns
+fyke <- fyke %>% select(
+  Station_ID,
+  Pond_ID,
+  Haul_Year_Winter,
+  Haul_Date_Jul,
+  Soak_Time,
+  Set_Occ_Year,
+  Water_Temp_C,
+  WFL_Caught,
+  WFL_Frequency)
+
+# Subset for complete cases only
+fyke <- fyke %>% drop_na()
+
+# Make all columns numeric or factor
+fyke$Station_ID <- as.factor(fyke$Station_ID)
+fyke$Pond_ID <- as.factor(fyke$Pond_ID)
+
 ```
 
-You can add options to executable code like this
+## Catch rates
 
 ```{r}
 #| echo: false
-2 * 2
+
+## This code chunk calculates an abundance index for all ponds
+
+
+## Run RFM
+
+# Data frame for RFM
+df <- fyke %>% select(-WFL_Caught)
+
+# Bootstrap sample for model training
+set.seed(12345)
+df_boot <- slice_sample(df, prop = 1, replace = TRUE)
+
+# Out of bag sample for testing
+df_oob <- setdiff(df, df_boot)
+
+# Data for RFM
+x <- select(df_boot, -WFL_Frequency)
+y <- df_boot$WFL_Frequency
+xtest <- select(df_oob, -WFL_Frequency)
+ytest <- df_oob$WFL_Frequency
+
+# Random forest model
+rf <- randomForest(x = x, y = y, xtest = xtest, ytest = ytest,
+  ntree = 200, mtry = 4,
+  importance = TRUE, proximity = TRUE, keep.forest = TRUE)
+
+
+## PDP Abundance Index
+
+# Make haul winter an integer
+fyke$Haul_Year_Winter <- as.integer(fyke$Haul_Year_Winter)
+
+# Calculate partial dependence
+pd <- bind_rows(partialPlot(rf, fyke, x.var = "Haul_Year_Winter", n.pt = 26, plot = FALSE))
+
+# Create custom rug to show all sampling by date
+rug <- fyke %>%
+  select(Haul_Year_Winter, Haul_Date_Jul)
+
+# Prepare empty vector for date
+rug$Haul_Date <- NA
+
+# Convert Julian date to date object
+for (i in 1:nrow(rug)){
+  rug$Haul_Date[i] <- as.Date(rug$Haul_Date_Jul[i],
+    origin = paste0(rug$Haul_Year_Winter[i] - 1, "-11-01"))
+}
+
+# Make Haul Date a date object
+rug$Haul_Date <- as.Date(rug$Haul_Date, format = "%Y-%m-%d")
+
+# Convert Haul Date to decimal years
+rug$Haul_Date <- as.numeric(
+  year(rug$Haul_Date) + (yday(rug$Haul_Date) - 1) / 
+    ifelse(leap_year(rug$Haul_Date), 366, 365))
+
+# Plot index
+ggplot(pd, aes(x = x, y = y)) +
+  geom_line(color = "blue", linewidth = 1) +
+  geom_rug(data = rug, aes(x = Haul_Date), inherit.aes = FALSE,
+    sides = "b", alpha = 0.1) +
+  xlab("Year") +
+  ylab("Abundance (no. per haul)") +
+  ggtitle("Winter Flounder Abundance", "RI Coastal Ponds") +
+  scale_y_continuous(expand = c(0, 0)) +
+  theme_pubr() +
+  coord_cartesian(xlim = c(1999, 2024), ylim = c(0, 30))
+  theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
 ```
 
-The `echo: false` option disables the printing of code (only output is displayed).
-
-## Catch rates
 
 ### Combined index
 
