@@ -4,6 +4,7 @@ subtitle: "Fyke Survey Annual Report"
 author: "B. P. Galligan, R. G. Balouskus, and M. C. McManus"
 format: pdf
 editor: visual
+date: today
 ---
 
 ```{r}
@@ -75,22 +76,24 @@ fyke$WFL_Caught <- as.factor(fyke$WFL_Caught)
 
 ```
 
+This report highlights data from survey year:
+
 ```{r}
 #| echo: false
-
-print(paste("Survey Year:", max(fyke$Haul_Year_Winter)))
-
-print(paste("This report was generated on:", Sys.Date()))
-
+print(max(fyke$Haul_Year_Winter))
 ```
-
 
 ## Catch rates
 
 ### Combined index
 
+@fig-combined-index provides an overview of the combined abundance patterns in all three coastal ponds.
+
 ```{r}
 #| echo: false
+#| label: fig-combined-index
+#| fig-cap: Fishery-independent abundance index for Rhode Island Winter Flounder in all three coastal ponds. The blue line is a partial dependence plot of Winter Flounder abundance on year.
+#| fig-pos: h
 
 ## This code chunk calculates an abundance index for all ponds
 
@@ -163,13 +166,15 @@ ggplot(pd, aes(x = x, y = y)) +
 
 ```
 
-
-
-
 ### Point Judith Pond
+
+This section will introduce @fig-pj-index.
 
 ```{r}
 #| echo: false
+#| label: fig-pj-index
+#| fig-cap: Fishery-independent abundance index for Winter Flounder in Point Judith Pond. The blue line is a partial dependence plot of Winter Flounder abundance on year.
+#| fig-pos: h
 
 ## This code chunk calculates an abundance index for all ponds
 
@@ -248,11 +253,15 @@ ggplot(pd, aes(x = x, y = y)) +
 
 ```
 
-
 ### Potter Pond
+
+This section will introduce @fig-pp-index.
 
 ```{r}
 #| echo: false
+#| label: fig-pp-index
+#| fig-cap: Fishery-independent abundance index for Winter Flounder in Potter Pond. The blue line is a partial dependence plot of Winter Flounder abundance on year.
+#| fig-pos: h
 
 ## This code chunk calculates an abundance index for all ponds
 
@@ -336,8 +345,13 @@ ggplot(pd, aes(x = x, y = y)) +
 
 ### Ninigret Pond
 
+This section will introduce @fig-np-index.
+
 ```{r}
 #| echo: false
+#| label: fig-np-index
+#| fig-cap: Fishery-independent abundance index for Winter Flounder in Ninigret Pond. The blue line is a partial dependence plot of Winter Flounder abundance on year.
+#| fig-pos: h
 
 ## This code chunk calculates an abundance index for all ponds
 
@@ -416,13 +430,15 @@ ggplot(pd, aes(x = x, y = y)) +
 
 ```
 
-
 ## Water temp
 
-Plot PDP, including a scatter plot of the most recent year of water temp vs. catch.
+This section will introduce @fig-water-temp.
 
 ```{r}
 #| echo: false
+#| label: fig-water-temp
+#| fig-cap: Partial dependence plot of Winter Flounder abundance on water temperature. The blue line is the partial dependence plot, and the gray rug shows the distribution of water temperatures in survey data. Scatter plot points represent the observations made in the most recent survey year.
+#| fig-pos: h
 
 ## This code chunk calculates PDP for water temperature and plots most recent year's data
 
@@ -474,7 +490,7 @@ ggplot(df2, aes(x = Water_Temp_C, y = WFL_Frequency)) +
     sides = "b", alpha = 0.1) +
   xlab("Water Temp (°C)") +
   ylab("Abundance (no. per haul)") +
-  ggtitle("Temperature Effect (Partial Dependence)", "RI Coastal Ponds") +
+  ggtitle("Temperature Effect", "RI Coastal Ponds") +
   coord_cartesian(ylim = c(0, NA)) +
   scale_y_continuous(expand = c(0, 0)) +
   theme_pubr() +
@@ -482,11 +498,15 @@ ggplot(df2, aes(x = Water_Temp_C, y = WFL_Frequency)) +
 
 ```
 
-
 Descriptive stats comparing most recent year's temp in each pond to mean temp for all years prior to 2020.
+
+This section will introduce @fig-water-temp-pj.
 
 ```{r}
 #| echo: false
+#| label: fig-water-temp-pj
+#| fig-cap: Boxplot of historical water temperature observations in Point Judith Pond. The dashed red line represents the mean water temperature for all years prior to 2020.
+#| fig-pos: h
 
 ## This code chunk plots descriptive stats for water temperature
 
@@ -503,6 +523,18 @@ ggplot(df, aes(group = Haul_Year_Winter, x = Haul_Year_Winter, y = Water_Temp_C)
   theme_pubr() +
   theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
 
+```
+
+This section will introduce @fig-water-temp-pp.
+
+```{r}
+#| echo: false
+#| label: fig-water-temp-pp
+#| fig-cap: Boxplot of historical water temperature observations in Potter Pond. The dashed red line represents the mean water temperature for all years prior to 2020.
+#| fig-pos: h
+
+## This code chunk plots descriptive stats for water temperature
+
 # Potter Pond
 df <- fyke %>% filter(Pond_ID == "PP")
 
@@ -515,6 +547,18 @@ ggplot(df, aes(group = Haul_Year_Winter, x = Haul_Year_Winter, y = Water_Temp_C)
   ggtitle("Water Temperature", "Potter Pond") +
   theme_pubr() +
   theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+
+```
+
+This section will introduce @fig-water-temp-np.
+
+```{r}
+#| echo: false
+#| label: fig-water-temp-np
+#| fig-cap: Boxplot of historical water temperature observations in Ninigret Pond. The dashed red line represents the mean water temperature for all years prior to 2020.
+#| fig-pos: h
+
+## This code chunk plots descriptive stats for water temperature
 
 # Ninigret Pond
 df <- fyke %>% filter(Pond_ID == "NP")
@@ -532,8 +576,6 @@ ggplot(df, aes(group = Haul_Year_Winter, x = Haul_Year_Winter, y = Water_Temp_C)
 
 ```
 
-
-
 ## Station
 
 Compare ALE for last five years with ALE for everything before that. This uses the classification model, i.e. catch probability and not abundance.
@@ -541,7 +583,7 @@ Compare ALE for last five years with ALE for everything before that. This uses t
 ```{r}
 #| echo: false
 
-## This code chunk calculates accumulated local effects (ALE) of station on catch probability
+## This code chunk calculates accumulated local effects (ALE) of station on catch probability. No plots are created.
 
 ## Run RFM
 
@@ -667,8 +709,13 @@ ale2_big <- filter(ale2, n >= 30)
 
 ### Point Judith Pond
 
+This section will introduce @fig-pj-stations.
+
 ```{r}
 #| echo: false
+#| label: fig-pj-stations
+#| fig-cap: Accumulated local effects (ALE) of station on catch probability in Point Judith Pond. The left panel shows the ALE for all years prior to 2020, and the right panel shows the ALE for the last five years.
+#| fig-pos: h
 
 ## This code chunk plots the ALE of station for Point Judith Pond
 
@@ -742,11 +789,15 @@ ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
 
 ```
 
-
 ### Potter Pond
+
+This section will introduce @fig-pp-stations.
 
 ```{r}
 #| echo: false
+#| label: fig-pp-stations
+#| fig-cap: Accumulated local effects (ALE) of station on catch probability in Potter Pond. The left panel shows the ALE for all years prior to 2020, and the right panel shows the ALE for the last five years.
+#| fig-pos: h
 
 ## This code chunk plots the ALE of station for Potter Pond
 
@@ -820,11 +871,15 @@ ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
 
 ```
 
-
 ### Ninigret Pond
+
+This section will introduce @fig-np-stations.
 
 ```{r}
 #| echo: false
+#| label: fig-np-stations
+#| fig-cap: Accumulated local effects (ALE) of station on catch probability in Ninigret Pond. The left panel shows the ALE for all years prior to 2020, and the right panel shows the ALE for the last five years.
+#| fig-pos: h
 
 ## This code chunk plots the ALE of station for Ninigret Pond
 
@@ -895,5 +950,3 @@ p2 <- ggplot() +
 ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
 
 ```
-
-
