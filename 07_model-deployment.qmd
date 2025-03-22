@@ -40,7 +40,7 @@ The `echo: false` option disables the printing of code (only output is displayed
 
 Plot ALE, potentially including a scatterplot of the most recent year of water temp vs. catch.
 
-Descriptive stats comparing most recent year's temp in each pond to mean temp for first ten years of survey.
+Descriptive stats comparing most recent year's temp in each pond to mean temp for first ten years of survey. Or comparing to an independent 2000-2010 baseline for each pond.
 
 ## Station
 
