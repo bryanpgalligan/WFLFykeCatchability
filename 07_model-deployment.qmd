@@ -1,10 +1,18 @@
 ---
-title: "Winter Flounder Catch Rates"
-subtitle: "Fyke Survey Annual Report"
-author: "B. P. Galligan, R. G. Balouskus, and M. C. McManus"
+title: "Winter Flounder Abundance in Rhode Island Coastal Ponds"
+subtitle: "RI DMF Fyke Survey 2023-2024"
+authors:
+  - name: Bryan P. Galligan
+  - name: M. Conor McManus
+  - name: Richard G. Balouskus
 format: pdf
+documentclass: report
 editor: visual
 date: today
+csl: documents/american-fisheries-society.csl
+bibliography: documents/references.bib
+fig-width: 6
+fig-height: 4
 ---
 
 ```{r}
@@ -76,24 +84,44 @@ fyke$WFL_Caught <- as.factor(fyke$WFL_Caught)
 
 ```
 
+## Introduction
+
+This report uses data from the Rhode Island Division of Marine Fisheries fyke survey and statistical models developed by Galligan et al. [-@galligan_drivers_nodate] to generate a summary of Winter Flounder *Pseudopleuronectes americanus* abundance in Rhode Island coastal ponds. The fyke survey is conducted annually in three ponds: Point Judith Pond, Potter Pond, and Ninigret Pond [@galligan_drivers_nodate]. The survey collects data on Winter Flounder abundance, water temperature, and other environmental variables [@balouskus_coastal_2024; @galligan_drivers_nodate]. The statistical models use random forest machine learning to evaluate catchability and derive a fishery-independent abundance index for Winter Flounder in each pond [@breiman_random_2001; @galligan_drivers_nodate].
+
+The software that generates this report is intended to be run annually. In addition to updating the models presented by Galligan et al. [-@galligan_drivers_nodate], it also provides a summary of Winter Flounder abundance and other relevant data for the most recent survey year.
+
 This report highlights data from survey year:
 
 ```{r}
 #| echo: false
-print(max(fyke$Haul_Year_Winter))
+
+print(
+  paste(
+    max(fyke$Haul_Year_Winter) - 1,
+    "-",
+    max(fyke$Haul_Year_Winter)
+  )
+)
+
 ```
 
-## Catch rates
+In what follows, we present an overview of Winter Flounder abundance in Rhode Island coastal ponds, focusing on the most recent survey year. We begin with a fishery-independent abundance index derived from data collected in all three coastal ponds, which is followed by specific abundance indices for each pond. We then examine the relationship between Winter Flounder abundance and water temperature. Finally, we explore the effects of fyke station on Winter Flounder catch probability (the probability of occurrence in the fyke survey catch).
 
-### Combined index
+## Winter Flounder Abundance
 
-@fig-combined-index provides an overview of the combined abundance patterns in all three coastal ponds.
+The Southern New England/Mid-Atlantic (SNE/MA) Winter Flounder *Pseudopleuronectes americanus* population experienced a severe decline through the 1990’s, and current estimates place stock biomass at less than 15% of its observed peak in 1982 [@nefsc_southern_2022]. Despite significant reductions in fishing effort, Winter Flounder show no signs of recovery [@nefsc_southern_2022].
+
+### Combined Index
+
+@fig-combined-index provides an overview of the combined abundance patterns in all three coastal ponds when corrected for catchability [@galligan_drivers_nodate].
+
+Our model-based abundance index for all three subpopulations shows a slow but continuing decline since 2007 that is not apparent in the raw survey data (@fig-combined-index). Like our index, the 2022 stock assessment for SNE/MA Winter Flounder showed a significant drop in spawning stock abundance in the early 2000’s, with 10,005 mt in the year 2000 and 4,648 mt in 2005 [@nefsc_southern_2022]. However, the assessment’s increase in spawning stock biomass from 2005–2013 and the subsequent decrease to ~3,500 mt are not reflected in our index [@nefsc_southern_2022].
 
 ```{r}
 #| echo: false
 #| label: fig-combined-index
 #| fig-cap: Fishery-independent abundance index for Rhode Island Winter Flounder in all three coastal ponds. The blue line is a partial dependence plot of Winter Flounder abundance on year.
-#| fig-pos: h
+#| fig-pos: htbp!
 
 ## This code chunk calculates an abundance index for all ponds
 
@@ -158,7 +186,6 @@ ggplot(pd, aes(x = x, y = y)) +
     sides = "b", alpha = 0.1) +
   xlab("Year") +
   ylab("Abundance (no. per haul)") +
-  ggtitle("Winter Flounder Abundance", "RI Coastal Ponds") +
   coord_cartesian(ylim = c(0, NA)) +
   scale_y_continuous(expand = c(0, 0)) +
   theme_pubr() +
@@ -168,13 +195,15 @@ ggplot(pd, aes(x = x, y = y)) +
 
 ### Point Judith Pond
 
-This section will introduce @fig-pj-index.
+@fig-pj-index provides an overview of Winter Flounder abundance through time in Point Judith Pond [@balouskus_coastal_2024].
+
+Point Judith Pond is the easternmost of the surveyed salt ponds. Point Judith Pond has a surface area of approximately 6.58 km2, a mean depth of 1.8 m, and is connected to Block Island Sound by an artificial breachway [@lee_elusive_1980]. The Saugatucket River flows into the north end of Point Judith Pond, providing the greatest freshwater flow of any of the surveyed ponds. Salinity within the pond ranges from approximately 20 PSU in the northern reaches to full oceanic salinity at the breachway. Due to the developed watershed, shallow depths, and relatively low flushing rates, Point Judith Pond can experience eutrophication and increased growth of macroalgae [@lee_eutrophication_1985; @meng_using_2000]. The pond is home to the largest fishing port in Rhode Island, the Block Island ferry terminal, and numerous marinas.
 
 ```{r}
 #| echo: false
 #| label: fig-pj-index
 #| fig-cap: Fishery-independent abundance index for Winter Flounder in Point Judith Pond. The blue line is a partial dependence plot of Winter Flounder abundance on year.
-#| fig-pos: h
+#| fig-pos: htbp!
 
 ## This code chunk calculates an abundance index for all ponds
 
@@ -245,7 +274,6 @@ ggplot(pd, aes(x = x, y = y)) +
     sides = "b", alpha = 0.1) +
   xlab("Year") +
   ylab("Abundance (no. per haul)") +
-  ggtitle("Winter Flounder Abundance", "Point Judith Pond") +
   coord_cartesian(ylim = c(0, NA)) +
   scale_y_continuous(expand = c(0, 0)) +
   theme_pubr() +
@@ -255,13 +283,15 @@ ggplot(pd, aes(x = x, y = y)) +
 
 ### Potter Pond
 
-This section will introduce @fig-pp-index.
+@fig-pp-index provides an overview of Winter Flounder abundance through time in Potter Pond.
+
+Potter Pond is situated immediately west of Point Judith Pond and joined to Point Judith by a permanent tidal channel. The surface area of Potter Pond is approximately 1.38 km2. The primary source of freshwater into Potter Pond is from Fresh Pond, which empties into Potter’s northern reaches. This northern section of Potter Pond is also characterized by a glacial kettle hole that reaches over 40 feet in depth, a unique feature among the RI coastal ponds. Potter Pond has no direct outlet to the ocean.
 
 ```{r}
 #| echo: false
 #| label: fig-pp-index
 #| fig-cap: Fishery-independent abundance index for Winter Flounder in Potter Pond. The blue line is a partial dependence plot of Winter Flounder abundance on year.
-#| fig-pos: h
+#| fig-pos: htbp!
 
 ## This code chunk calculates an abundance index for all ponds
 
@@ -335,7 +365,6 @@ ggplot(pd, aes(x = x, y = y)) +
     sides = "b", alpha = 0.1) +
   xlab("Year") +
   ylab("Abundance (no. per haul)") +
-  ggtitle("Winter Flounder Abundance", "Potter Pond") +
   coord_cartesian(ylim = c(0, 5)) +
   scale_y_continuous(expand = c(0, 0)) +
   theme_pubr() +
@@ -345,13 +374,15 @@ ggplot(pd, aes(x = x, y = y)) +
 
 ### Ninigret Pond
 
-This section will introduce @fig-np-index.
+@fig-np-index provides an overview of Winter Flounder abundance through time in Ninigret Pond.
+
+Ninigret Pond is the largest salt pond in Rhode Island with a surface area of approximately 6.74 km2 and has a permanent, maintained breachway to the ocean. The mean depth throughout Ninigret Pond is approximately 0.4 m, and it is connected to Green Hill Pond to the east by a tidal channel [@lee_elusive_1980]. The watershed of Ninigret Pond includes residential housing, marinas, and the USFWS Ninigret Wildlife Refuge.
 
 ```{r}
 #| echo: false
 #| label: fig-np-index
 #| fig-cap: Fishery-independent abundance index for Winter Flounder in Ninigret Pond. The blue line is a partial dependence plot of Winter Flounder abundance on year.
-#| fig-pos: h
+#| fig-pos: htbp!
 
 ## This code chunk calculates an abundance index for all ponds
 
@@ -422,7 +453,6 @@ ggplot(pd, aes(x = x, y = y)) +
     sides = "b", alpha = 0.1) +
   xlab("Year") +
   ylab("Abundance (no. per haul)") +
-  ggtitle("Winter Flounder Abundance", "Ninigret Pond") +
   coord_cartesian(ylim = c(0, NA)) +
   scale_y_continuous(expand = c(0, 0)) +
   theme_pubr() +
@@ -430,15 +460,13 @@ ggplot(pd, aes(x = x, y = y)) +
 
 ```
 
-## Water temp
-
-This section will introduce @fig-water-temp.
+## Water Temperature
 
 ```{r}
 #| echo: false
 #| label: fig-water-temp
 #| fig-cap: Partial dependence plot of Winter Flounder abundance on water temperature. The blue line is the partial dependence plot, and the gray rug shows the distribution of water temperatures in survey data. Scatter plot points represent the observations made in the most recent survey year.
-#| fig-pos: h
+#| fig-pos: htbp!
 
 ## This code chunk calculates PDP for water temperature and plots most recent year's data
 
@@ -490,7 +518,7 @@ ggplot(df2, aes(x = Water_Temp_C, y = WFL_Frequency)) +
     sides = "b", alpha = 0.1) +
   xlab("Water Temp (°C)") +
   ylab("Abundance (no. per haul)") +
-  ggtitle("Temperature Effect", "RI Coastal Ponds") +
+  ggtitle("") +
   coord_cartesian(ylim = c(0, NA)) +
   scale_y_continuous(expand = c(0, 0)) +
   theme_pubr() +
@@ -498,15 +526,17 @@ ggplot(df2, aes(x = Water_Temp_C, y = WFL_Frequency)) +
 
 ```
 
-Descriptive stats comparing most recent year's temp in each pond to mean temp for all years prior to 2020.
+@fig-water-temp shows the partial dependence of Winter Flounder abundance on water temperature.
 
-This section will introduce @fig-water-temp-pj.
+Water temperature was the only environmental variable that predicted abundance (@fig-water-temp). Below an ~8 ℃ threshold, warmer temperatures were associated with increased abundance (Figure 3). This trend is consistent with observations of burrowing and/or inactivity at cooler temperatures, which would make Winter Flounder less available to fixed gears [@grothues_winter_2012; @ziegler_flatfish_2019]. Above ~8 ℃, the positive effect of temperature on abundance declined.
+
+### Historical Temperature Observations
 
 ```{r}
 #| echo: false
 #| label: fig-water-temp-pj
 #| fig-cap: Boxplot of historical water temperature observations in Point Judith Pond. The dashed red line represents the mean water temperature for all years prior to 2020.
-#| fig-pos: h
+#| fig-pos: "!htbp"
 
 ## This code chunk plots descriptive stats for water temperature
 
@@ -519,13 +549,12 @@ ggplot(df, aes(group = Haul_Year_Winter, x = Haul_Year_Winter, y = Water_Temp_C)
     linetype = "dashed", color = "red") +
   xlab("Year") +
   ylab("Water Temp (°C)") +
-  ggtitle("Water Temperature", "Point Judith Pond") +
+  ggtitle("", "Point Judith Pond") +
   theme_pubr() +
   theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
 
 ```
 
-This section will introduce @fig-water-temp-pp.
 
 ```{r}
 #| echo: false
@@ -544,13 +573,12 @@ ggplot(df, aes(group = Haul_Year_Winter, x = Haul_Year_Winter, y = Water_Temp_C)
     linetype = "dashed", color = "red") +
   xlab("Year") +
   ylab("Water Temp (°C)") +
-  ggtitle("Water Temperature", "Potter Pond") +
+  ggtitle("", "Potter Pond") +
   theme_pubr() +
   theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
 
 ```
 
-This section will introduce @fig-water-temp-np.
 
 ```{r}
 #| echo: false
@@ -569,16 +597,28 @@ ggplot(df, aes(group = Haul_Year_Winter, x = Haul_Year_Winter, y = Water_Temp_C)
     linetype = "dashed", color = "red") +
   xlab("Year") +
   ylab("Water Temp (°C)") +
-  ggtitle("Water Temperature", "Ninigret Pond") +
+  ggtitle("", "Ninigret Pond") +
   theme_pubr() +
   theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
 
 
 ```
 
+@fig-water-temp-pj shows the distribution of water temperatures in Point Judith Pond. The mean water temperature observed in Point Judith Pond from 1998-2023 was 5.7 ℃.
+
+@fig-water-temp-pp shows the distribution of water temperatures in Potter Pond. As of 2024, the mean water temperature observed in Potter Pond was 5.7 ℃, with most of those observations taking place since 2011.
+
+@fig-water-temp-np shows the distribution of water temperatures in Ninigret Pond. The mean water temperature observed in Ninigret Pond from 2012-2024 was 5.6 ℃.
+
+Winter Flounder display diverse temperature preferences throughout their range, and respond to shifts in temperature by managing depth, activity level, and burrowing behaviors [@collette_righteye_2002]. Climate warming is believed to be a significant driver of Winter Flounder population dynamics, with increased temperatures exerting direct effects on early life stages and indirect effects through changes in niche availability [@bell_climate-induced_2022; @langan_taking_2023]. We also note the possible amplification of long-term warming in the study location [@oczkowski_preliminary_2015].
+
 ## Station
 
-Compare ALE for last five years with ALE for everything before that. This uses the classification model, i.e. catch probability and not abundance.
+The following figures show the accumulated local effects (ALE) of station on catch probability for (1) the period from 1998-2019 and (2) the most recent five survey years. Effects are estimated for Point Judith Pond (@fig-pj-stations), Potter Pond (@fig-pp-stations), and Ninigret Pond (@fig-np-stations).
+
+Fixed sampling stations within Point Judith Pond and Potter Pond have been surveyed at varying levels of effort since 1999 [@galligan_drivers_nodate]. Ninigret Pond was added to the survey in 2012 [@galligan_drivers_nodate]. Within each pond, between one and three fyke nets were set concurrently at any given time and then rotated haphazardly among fixed stations over the course of the winter.
+
+Station and pond are both influential drivers of Winter Flounder catch rates in the fyke survey [@galligan_drivers_nodate]. Notably, Potter Pond had no sites with a positive effect on occurrence or abundance, and Ninigret Pond displayed the strongest positive effects [@galligan_drivers_nodate].
 
 ```{r}
 #| echo: false
@@ -709,13 +749,11 @@ ale2_big <- filter(ale2, n >= 30)
 
 ### Point Judith Pond
 
-This section will introduce @fig-pj-stations.
-
 ```{r}
 #| echo: false
 #| label: fig-pj-stations
 #| fig-cap: Accumulated local effects (ALE) of station on catch probability in Point Judith Pond. The left panel shows the ALE for all years prior to 2020, and the right panel shows the ALE for the last five years.
-#| fig-pos: h
+#| fig-pos: "!htbp"
 
 ## This code chunk plots the ALE of station for Point Judith Pond
 
@@ -739,7 +777,7 @@ p1 <- ggplot() +
   geom_point(data = ale1_big,
     aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
     alpha = 1) +
-  ggtitle("Point Judith Pond", "Pre-2020") +
+  ggtitle("", "Pre-2020") +
   xlab("") +
   ylab("") +
   scale_x_continuous(breaks = c(-71.51, -71.49)) +
@@ -789,15 +827,17 @@ ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
 
 ```
 
-### Potter Pond
 
-This section will introduce @fig-pp-stations.
+The historically productive Point Judith Pond has been surveyed since 1999 [@fig-pj-stations]. The fyke survey has been conducted at 8 fixed stations within the pond, with varying levels of effort at each station. Notably, temporal changes have been observed in Point Judith Pond, with a narrower spawning window in more recent years [@balouskus_coastal_2024].
+
+
+### Potter Pond
 
 ```{r}
 #| echo: false
 #| label: fig-pp-stations
 #| fig-cap: Accumulated local effects (ALE) of station on catch probability in Potter Pond. The left panel shows the ALE for all years prior to 2020, and the right panel shows the ALE for the last five years.
-#| fig-pos: h
+#| fig-pos: "!htbp"
 
 ## This code chunk plots the ALE of station for Potter Pond
 
@@ -819,7 +859,7 @@ p1 <- ggplot() +
   geom_point(data = ale1_big,
     aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
     alpha = 1) +
-  ggtitle("Potter Pond", "Pre-2020") +
+  ggtitle("", "Pre-2020") +
   xlab("") +
   ylab("") +
   scale_x_continuous(breaks = c(-71.54, -71.53)) +
@@ -871,15 +911,17 @@ ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
 
 ```
 
-### Ninigret Pond
 
-This section will introduce @fig-np-stations.
+Potter Pond has been surveyed consistently since 2011, with fyke nets set at 7 fixed stations within the pond [@fig-pp-stations]. Potter Pond has been characterized by a lack of positive effects on Winter Flounder occurrence or abundance, with the exception of a single station in the most recent survey years [@galligan_drivers_nodate].
+
+
+### Ninigret Pond
 
 ```{r}
 #| echo: false
 #| label: fig-np-stations
 #| fig-cap: Accumulated local effects (ALE) of station on catch probability in Ninigret Pond. The left panel shows the ALE for all years prior to 2020, and the right panel shows the ALE for the last five years.
-#| fig-pos: h
+#| fig-pos: "!htbp"
 
 ## This code chunk plots the ALE of station for Ninigret Pond
 
@@ -901,7 +943,7 @@ p1 <- ggplot() +
   geom_point(data = ale1_big,
     aes(x = Longitude, y = Latitude, color = posneg, size = abs(0.5 - Probability)),
     alpha = 1) +
-  ggtitle("Ninigret Pond", "Pre-2020") +
+  ggtitle("", "Pre-2020") +
   xlab("") +
   ylab("") +
   scale_x_continuous(breaks = c(-71.7, -71.67, -71.64)) +
@@ -950,3 +992,11 @@ p2 <- ggplot() +
 ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
 
 ```
+
+Ninigret Pond was added to the fyke survey in 2012 with 7 fixed stations [@fig-np-stations]. The pond has been characterized by more positive effects on Winter Flounder occurrence and abundance and a higher abundance index than Point Judith or Potter ponds in recent years [@galligan_drivers_nodate].
+
+
+## References
+
+::: {#refs}
+:::
