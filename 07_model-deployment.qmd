@@ -113,10 +113,6 @@ The Southern New England/Mid-Atlantic (SNE/MA) Winter Flounder *Pseudopleuronect
 
 ### Combined Index
 
-@fig-combined-index provides an overview of the combined abundance patterns in all three coastal ponds when corrected for catchability [@galligan_drivers_nodate].
-
-Our model-based abundance index for all three subpopulations shows a slow but continuing decline since 2007 that is not apparent in the raw survey data (@fig-combined-index). Like our index, the 2022 stock assessment for SNE/MA Winter Flounder showed a significant drop in spawning stock abundance in the early 2000’s, with 10,005 mt in the year 2000 and 4,648 mt in 2005 [@nefsc_southern_2022]. However, the assessment’s increase in spawning stock biomass from 2005–2013 and the subsequent decrease to ~3,500 mt are not reflected in our index [@nefsc_southern_2022].
-
 ```{r}
 #| echo: false
 #| label: fig-combined-index
@@ -193,11 +189,12 @@ ggplot(pd, aes(x = x, y = y)) +
 
 ```
 
+@fig-combined-index provides an overview of the combined abundance patterns in all three coastal ponds when corrected for catchability [@galligan_drivers_nodate].
+
+Our model-based abundance index for all three subpopulations shows a slow but continuing decline since 2007 that is not apparent in the raw survey data (@fig-combined-index). Like our index, the 2022 stock assessment for SNE/MA Winter Flounder showed a significant drop in spawning stock abundance in the early 2000’s, with 10,005 mt in the year 2000 and 4,648 mt in 2005 [@nefsc_southern_2022]. However, the assessment’s increase in spawning stock biomass from 2005–2013 and the subsequent decrease to \~3,500 mt are not reflected in our index [@nefsc_southern_2022].
+
+
 ### Point Judith Pond
-
-@fig-pj-index provides an overview of Winter Flounder abundance through time in Point Judith Pond [@balouskus_coastal_2024].
-
-Point Judith Pond is the easternmost of the surveyed salt ponds. Point Judith Pond has a surface area of approximately 6.58 km2, a mean depth of 1.8 m, and is connected to Block Island Sound by an artificial breachway [@lee_elusive_1980]. The Saugatucket River flows into the north end of Point Judith Pond, providing the greatest freshwater flow of any of the surveyed ponds. Salinity within the pond ranges from approximately 20 PSU in the northern reaches to full oceanic salinity at the breachway. Due to the developed watershed, shallow depths, and relatively low flushing rates, Point Judith Pond can experience eutrophication and increased growth of macroalgae [@lee_eutrophication_1985; @meng_using_2000]. The pond is home to the largest fishing port in Rhode Island, the Block Island ferry terminal, and numerous marinas.
 
 ```{r}
 #| echo: false
@@ -281,11 +278,12 @@ ggplot(pd, aes(x = x, y = y)) +
 
 ```
 
+@fig-pj-index provides an overview of Winter Flounder abundance through time in Point Judith Pond [@balouskus_coastal_2024].
+
+Point Judith Pond is the easternmost of the surveyed salt ponds. Point Judith Pond has a surface area of approximately 6.58 km2, a mean depth of 1.8 m, and is connected to Block Island Sound by an artificial breachway [@lee_elusive_1980]. The Saugatucket River flows into the north end of Point Judith Pond, providing the greatest freshwater flow of any of the surveyed ponds. Salinity within the pond ranges from approximately 20 PSU in the northern reaches to full oceanic salinity at the breachway. Due to the developed watershed, shallow depths, and relatively low flushing rates, Point Judith Pond can experience eutrophication and increased growth of macroalgae [@lee_eutrophication_1985; @meng_using_2000]. The pond is home to the largest fishing port in Rhode Island, the Block Island ferry terminal, and numerous marinas.
+
+
 ### Potter Pond
-
-@fig-pp-index provides an overview of Winter Flounder abundance through time in Potter Pond.
-
-Potter Pond is situated immediately west of Point Judith Pond and joined to Point Judith by a permanent tidal channel. The surface area of Potter Pond is approximately 1.38 km2. The primary source of freshwater into Potter Pond is from Fresh Pond, which empties into Potter’s northern reaches. This northern section of Potter Pond is also characterized by a glacial kettle hole that reaches over 40 feet in depth, a unique feature among the RI coastal ponds. Potter Pond has no direct outlet to the ocean.
 
 ```{r}
 #| echo: false
@@ -372,11 +370,12 @@ ggplot(pd, aes(x = x, y = y)) +
 
 ```
 
+@fig-pp-index provides an overview of Winter Flounder abundance through time in Potter Pond.
+
+Potter Pond is situated immediately west of Point Judith Pond and joined to Point Judith by a permanent tidal channel. The surface area of Potter Pond is approximately 1.38 km2. The primary source of freshwater into Potter Pond is from Fresh Pond, which empties into Potter’s northern reaches. This northern section of Potter Pond is also characterized by a glacial kettle hole that reaches over 40 feet in depth, a unique feature among the RI coastal ponds. Potter Pond has no direct outlet to the ocean.
+
+
 ### Ninigret Pond
-
-@fig-np-index provides an overview of Winter Flounder abundance through time in Ninigret Pond.
-
-Ninigret Pond is the largest salt pond in Rhode Island with a surface area of approximately 6.74 km2 and has a permanent, maintained breachway to the ocean. The mean depth throughout Ninigret Pond is approximately 0.4 m, and it is connected to Green Hill Pond to the east by a tidal channel [@lee_elusive_1980]. The watershed of Ninigret Pond includes residential housing, marinas, and the USFWS Ninigret Wildlife Refuge.
 
 ```{r}
 #| echo: false
@@ -460,6 +459,11 @@ ggplot(pd, aes(x = x, y = y)) +
 
 ```
 
+@fig-np-index provides an overview of Winter Flounder abundance through time in Ninigret Pond.
+
+Ninigret Pond is the largest salt pond in Rhode Island with a surface area of approximately 6.74 km2 and has a permanent, maintained breachway to the ocean. The mean depth throughout Ninigret Pond is approximately 0.4 m, and it is connected to Green Hill Pond to the east by a tidal channel [@lee_elusive_1980]. The watershed of Ninigret Pond includes residential housing, marinas, and the USFWS Ninigret Wildlife Refuge.
+
+
 ## Water Temperature
 
 ```{r}
@@ -528,7 +532,7 @@ ggplot(df2, aes(x = Water_Temp_C, y = WFL_Frequency)) +
 
 @fig-water-temp shows the partial dependence of Winter Flounder abundance on water temperature.
 
-Water temperature was the only environmental variable that predicted abundance (@fig-water-temp). Below an ~8 ℃ threshold, warmer temperatures were associated with increased abundance (Figure 3). This trend is consistent with observations of burrowing and/or inactivity at cooler temperatures, which would make Winter Flounder less available to fixed gears [@grothues_winter_2012; @ziegler_flatfish_2019]. Above ~8 ℃, the positive effect of temperature on abundance declined.
+Water temperature was the only environmental variable that predicted abundance (@fig-water-temp). Below an \~8 ℃ threshold, warmer temperatures were associated with increased abundance (Figure 3). This trend is consistent with observations of burrowing and/or inactivity at cooler temperatures, which would make Winter Flounder less available to fixed gears [@grothues_winter_2012; @ziegler_flatfish_2019]. Above \~8 ℃, the positive effect of temperature on abundance declined.
 
 ### Historical Temperature Observations
 
@@ -555,7 +559,6 @@ ggplot(df, aes(group = Haul_Year_Winter, x = Haul_Year_Winter, y = Water_Temp_C)
 
 ```
 
-
 ```{r}
 #| echo: false
 #| label: fig-water-temp-pp
@@ -578,7 +581,6 @@ ggplot(df, aes(group = Haul_Year_Winter, x = Haul_Year_Winter, y = Water_Temp_C)
   theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
 
 ```
-
 
 ```{r}
 #| echo: false
@@ -613,12 +615,6 @@ ggplot(df, aes(group = Haul_Year_Winter, x = Haul_Year_Winter, y = Water_Temp_C)
 Winter Flounder display diverse temperature preferences throughout their range, and respond to shifts in temperature by managing depth, activity level, and burrowing behaviors [@collette_righteye_2002]. Climate warming is believed to be a significant driver of Winter Flounder population dynamics, with increased temperatures exerting direct effects on early life stages and indirect effects through changes in niche availability [@bell_climate-induced_2022; @langan_taking_2023]. We also note the possible amplification of long-term warming in the study location [@oczkowski_preliminary_2015].
 
 ## Station
-
-The following figures show the accumulated local effects (ALE) of station on catch probability for (1) the period from 1998-2019 and (2) the most recent five survey years. Effects are estimated for Point Judith Pond (@fig-pj-stations), Potter Pond (@fig-pp-stations), and Ninigret Pond (@fig-np-stations).
-
-Fixed sampling stations within Point Judith Pond and Potter Pond have been surveyed at varying levels of effort since 1999 [@galligan_drivers_nodate]. Ninigret Pond was added to the survey in 2012 [@galligan_drivers_nodate]. Within each pond, between one and three fyke nets were set concurrently at any given time and then rotated haphazardly among fixed stations over the course of the winter.
-
-Station and pond are both influential drivers of Winter Flounder catch rates in the fyke survey [@galligan_drivers_nodate]. Notably, Potter Pond had no sites with a positive effect on occurrence or abundance, and Ninigret Pond displayed the strongest positive effects [@galligan_drivers_nodate].
 
 ```{r}
 #| echo: false
@@ -747,8 +743,6 @@ ale2_big <- filter(ale2, n >= 30)
 
 ```
 
-### Point Judith Pond
-
 ```{r}
 #| echo: false
 #| label: fig-pj-stations
@@ -826,12 +820,6 @@ p2 <- ggplot() +
 ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
 
 ```
-
-
-The historically productive Point Judith Pond has been surveyed since 1999 [@fig-pj-stations]. The fyke survey has been conducted at 8 fixed stations within the pond, with varying levels of effort at each station. Notably, temporal changes have been observed in Point Judith Pond, with a narrower spawning window in more recent years [@balouskus_coastal_2024].
-
-
-### Potter Pond
 
 ```{r}
 #| echo: false
@@ -911,12 +899,6 @@ ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
 
 ```
 
-
-Potter Pond has been surveyed consistently since 2011, with fyke nets set at 7 fixed stations within the pond [@fig-pp-stations]. Potter Pond has been characterized by a lack of positive effects on Winter Flounder occurrence or abundance, with the exception of a single station in the most recent survey years [@galligan_drivers_nodate].
-
-
-### Ninigret Pond
-
 ```{r}
 #| echo: false
 #| label: fig-np-stations
@@ -993,8 +975,23 @@ ggarrange(p1, p2, ncol = 2, nrow = 1, common.legend = TRUE, legend = "right")
 
 ```
 
-Ninigret Pond was added to the fyke survey in 2012 with 7 fixed stations [@fig-np-stations]. The pond has been characterized by more positive effects on Winter Flounder occurrence and abundance and a higher abundance index than Point Judith or Potter ponds in recent years [@galligan_drivers_nodate].
+The following figures show the accumulated local effects (ALE) of station on catch probability for (1) the period from 1998-2019 and (2) the most recent five survey years. Effects are estimated for Point Judith Pond (@fig-pj-stations), Potter Pond (@fig-pp-stations), and Ninigret Pond (@fig-np-stations).
 
+Fixed sampling stations within Point Judith Pond and Potter Pond have been surveyed at varying levels of effort since 1999 [@galligan_drivers_nodate]. Ninigret Pond was added to the survey in 2012 [@galligan_drivers_nodate]. Within each pond, between one and three fyke nets were set concurrently at any given time and then rotated haphazardly among fixed stations over the course of the winter.
+
+Station and pond are both influential drivers of Winter Flounder catch rates in the fyke survey [@galligan_drivers_nodate]. Notably, Potter Pond had no sites with a positive effect on occurrence or abundance, and Ninigret Pond displayed the strongest positive effects [@galligan_drivers_nodate].
+
+### Point Judith Pond
+
+The historically productive Point Judith Pond has been surveyed since 1999 [@fig-pj-stations]. The fyke survey has been conducted at 8 fixed stations within the pond, with varying levels of effort at each station. Notably, temporal changes have been observed in Point Judith Pond, with a narrower spawning window in more recent years [@balouskus_coastal_2024].
+
+### Potter Pond
+
+Potter Pond has been surveyed consistently since 2011, with fyke nets set at 7 fixed stations within the pond [@fig-pp-stations]. Potter Pond has been characterized by a lack of positive effects on Winter Flounder occurrence or abundance, with the exception of a single station in the most recent survey years [@galligan_drivers_nodate].
+
+### Ninigret Pond
+
+Ninigret Pond was added to the fyke survey in 2012 with 7 fixed stations [@fig-np-stations]. The pond has been characterized by more positive effects on Winter Flounder occurrence and abundance and a higher abundance index than Point Judith or Potter ponds in recent years [@galligan_drivers_nodate].
 
 ## References
 
