@@ -1,36 +1,110 @@
-## Previous code ##
-
-## Count tagged flounder
-
-# Load raw data
-tags <- read_excel("data/raw-data/IndividualWFLCaptured.xlsx")
-
-# Count tagging events
-table(tags$Tagged_YN)
-
-# Count dead fish
-table(tags$Dead_YN)
-
-################################################################################
-# The actual draft code is below this line
-################################################################################
+# This script summarizes mark recapture results
 
 ## Load data
 fish <- read_excel("data/raw-data/IndividualWFLCaptured.xlsx")
 recaps <- read_excel("data/raw-data/RecaptureLocs.xlsx")
 
-# Temp - clean data for new "raw" data files
+##### Summarize Releases #####
 
-## Fish data
+# Fish tagged by pond
+fish_summary <- fish %>%
+  group_by(Tagged_YN, Pond_ID) %>%
+  tally()
 
-# Remove current season
-fish <- filter(fish, Haul_Year_Winter < 2025)
+# Clean table
+fish_summary <- filter(fish_summary, Tagged_YN == TRUE)
+fish_summary <- fish_summary[, c(2, 3)]
+fish_summary <- rename(fish_summary, "Tagged" = "n")
 
-# Remove surplus columns
-fish <- fish[,1:9]
+# Add columns for recapture counts
+fish_summary$Recaptured_01 <- NA
+fish_summary$Recaptured_02 <- NA
 
-# # overwrite
-# write_excel_csv(fish, "data/raw-data/IndividualWFLCaptured.xlsx")
+# Fill in recaptured_01
+fish_summary$Recaptured_01[fish_summary$Pond_ID == "NP"] <- 
+  nrow(filter(
+    fish,
+    Pond_ID == "NP" & Recaptured_1_0 == 1 & Recaptured_2_1_0 == 0
+  ))
+fish_summary$Recaptured_01[fish_summary$Pond_ID == "PJ"] <- 
+  nrow(filter(
+    fish,
+    Pond_ID == "PJ" & Recaptured_1_0 == 1 & Recaptured_2_1_0 == 0
+  ))
+fish_summary$Recaptured_01[fish_summary$Pond_ID == "PP"] <- 
+  nrow(filter(
+    fish,
+    Pond_ID == "PP" & Recaptured_1_0 == 1 & Recaptured_2_1_0 == 0
+  ))
+
+# Fill in recaptured_02
+fish_summary$Recaptured_02[fish_summary$Pond_ID == "NP"] <- 
+  nrow(filter(
+    fish,
+    Pond_ID == "NP" & Recaptured_2_1_0 == 1
+  ))
+fish_summary$Recaptured_02[fish_summary$Pond_ID == "PJ"] <- 
+  nrow(filter(
+    fish,
+    Pond_ID == "PJ" & Recaptured_2_1_0 == 1
+  ))
+fish_summary$Recaptured_02[fish_summary$Pond_ID == "PP"] <- 
+  nrow(filter(
+    fish,
+    Pond_ID == "PP" & Recaptured_2_1_0 == 1
+  ))
+
+# Rename pond column
+fish_summary <- rename(fish_summary, "Rel_Pond" = "Pond_ID")
+
+# Write to file
+write_csv(fish_summary, "data/clean-data/06_RecaptureSummary.csv")
+
+
+
+
+##### Summarize recaptures #####
+
+
+# Rename columns
+recaps <- recaps %>%
+  rename(
+    rel_lat = Latitude,
+    rel_lon = Longitude,
+    rec_lat = Tag_Recapture_Location_1_Lat,
+    rec_lon = Tag_Recapture_Location_1_Lon,
+    rel_date = Haul_Date,
+    rec_date = Tag_Recapture_Date_1,
+    rel_len = Length,
+    rec_len = Tag_Recapture_Length_1
+  )
+
+# Add release pond to recaps
+recaps$rel_loc <- substr(recaps$Station_ID, 1, 2)
+
+# Summarize recap location
+recaps$rec_loc <- NA
+for (i in 1:nrow(recaps)){
+  
+  if (!is.na(recaps$Tag_Recapture_Location_1[i])){
+    if (recaps$Tag_Recapture_Location_1[i] == "Ninigret Pond"){
+      recaps$rec_loc[i] <- "NP"
+    } else if (recaps$Tag_Recapture_Location_1[i] == "Point Judith Pond"){
+      recaps$rec_loc[i] <- "PJ"
+    } else if (recaps$Tag_Recapture_Location_1[i] == "Potter Pond"){
+      recaps$rec_loc[i] <- "PP"
+    } else {
+      recaps$rec_loc[i] <- "Other"
+    }
+  }
+  
+}
+
+# Summarize days at large to first recapture
+recaps$days_at_large <- as.numeric(difftime(recaps$rec_date, recaps$rel_date, units = "days"))
+
+# Columns to summarize recaptures
+
 
 
 
