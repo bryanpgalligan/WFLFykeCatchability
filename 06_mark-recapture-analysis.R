@@ -4,7 +4,20 @@
 fish <- read_excel("data/raw-data/IndividualWFLCaptured.xlsx")
 recaps <- read_excel("data/raw-data/RecaptureLocs.xlsx")
   
+# Standard error function
+# Function to find SE (standard error) of the mean of a vector
+se.mean <- function(x){
   
+  # If there are NA in x
+  if(sum(is.na(x)) > 0){
+    
+    # Remove NA
+    x <- na.omit(x)
+  }
+  
+  sd(x)/sqrt(length(x))
+  
+}
 
 
 ##### Summarize Mark Recapture Frequencies #####
@@ -61,7 +74,7 @@ fish_summary$Recaptured_02[fish_summary$Pond_ID == "PP"] <-
 fish_summary <- rename(fish_summary, "Rel_Pond" = "Pond_ID")
 
 # Write to file
-write_csv(fish_summary, "data/clean-data/06_RecaptureSummary.csv")
+write_csv(fish_summary, "tables/06_recapture_summary.csv")
 
 
 
@@ -105,14 +118,30 @@ for (i in 1:nrow(recaps)){
 # Summarize days at large to first recapture
 recaps$days_at_large <- as.numeric(difftime(recaps$rec_date, recaps$rel_date, units = "days"))
 
+# Add full pond names
+recaps$rel_loc[recaps$rel_loc == "NP"] <- "Ninigret"
+recaps$rel_loc[recaps$rel_loc == "PJ"] <- "Point Judith"
+recaps$rel_loc[recaps$rel_loc == "PP"] <- "Potter"
+
 # Create boxplot for days at large by release pond
 ggplot(recaps, aes(x = rel_loc, y = days_at_large)) +
   geom_boxplot(outliers = FALSE) +
   labs(
-    title = "Days at Large by Release Pond",
-    x = "Release Pond",
+    title = "",
+    x = "",
     y = "Days at Large"
-  )
+  ) +
+  theme_pubr()
+
+# Save image
+ggsave("figures/06_days-at-large.png", width = 4, height = 4)
+
+# Recapture frequency summary stats
+mean(recaps$days_at_large, na.rm = TRUE)
+se.mean(recaps$days_at_large)
+max(recaps$days_at_large, na.rm = TRUE)
+min(recaps$days_at_large, na.rm = TRUE)
+nrow(filter(recaps, days_at_large <= 14))
 
 
 
@@ -130,26 +159,26 @@ recap_summary <- spread(recap_summary, key = rec_loc, value = n)
 # View NP recaptures in PJ
 df <- recaps %>% 
   select(rel_loc, rel_date, rec_loc, rec_date, Tag_Recapture_Method_1) %>%
-  filter(rel_loc == "NP") %>% 
+  filter(rel_loc == "Ninigret") %>% 
   filter(rec_loc == "PJ")
 
 # View PJ recaptures in PP
 df <- recaps %>% 
   select(rel_loc, rel_date, rec_loc, rec_date, Tag_Recapture_Method_1) %>%
-  filter(rel_loc == "PJ") %>% 
+  filter(rel_loc == "Point Judith") %>% 
   filter(rec_loc == "PP")
 
 # View PP recaptures in PJ
 df <- recaps %>% 
   select(rel_loc, rel_date, rec_loc, rec_date, Tag_Recapture_Method_1) %>%
-  filter(rel_loc == "PP") %>% 
+  filter(rel_loc == "Potter") %>% 
   filter(rec_loc == "PJ")
 
 # Clean recapture summary
 recap_summary <- select(recap_summary, rel_loc, NP, PJ, PP, Other)
 
 # Write to file
-write_csv(recap_summary, "data/clean-data/06_RecaptureLocationSummary.csv")
+write_csv(recap_summary, "tables/06_recapture_location_summary.csv")
 
 
 
