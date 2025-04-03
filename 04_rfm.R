@@ -880,7 +880,7 @@ mean_abundance <- fyke99 %>%
 # colnames(vimportance)[colnames(vimportance) == "MeanDecreaseGini"] <- "Gini"
 # 
 # # Plot variable importance
-# vars_2019_binary <- ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) +
+# ggplot(vimportance, aes(x = var, y = MeanDecreaseAccuracy)) +
 #   geom_segment(aes(x = var, xend = var, y = 0, yend = MeanDecreaseAccuracy), color = "skyblue") +
 #   geom_point(aes(size = Gini), color = "blue", alpha=0.6) +
 #   theme_light() +
@@ -1072,7 +1072,7 @@ mean_abundance <- fyke99 %>%
 # colnames(vimportance)[colnames(vimportance) == "IncNodePurity"] <- "Node Purity"
 # 
 # # Plot variable importance
-# vars_2019_freq <- ggplot(vimportance, aes(x = var, y = `%IncMSE`)) +
+# ggplot(vimportance, aes(x = var, y = `%IncMSE`)) +
 #   geom_segment(aes(x = var, xend = var, y = 0, yend = `%IncMSE`), color = "skyblue") +
 #   geom_point(aes(size = `Node Purity`), color = "blue", alpha=0.6) +
 #   theme_light() +
@@ -1177,7 +1177,7 @@ mean_abundance <- fyke99 %>%
 # 
 # 
 # 
-
+# 
 # ##### Fig - Variable importance #####
 
 # Combine variable importance plots
