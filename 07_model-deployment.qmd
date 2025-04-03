@@ -15,6 +15,11 @@ fig-width: 6
 fig-height: 4
 ---
 
+## To do
+- put pond indices on one plot together
+- add language about how to interpret pd and ale plots
+- change temp to ALE and probably remove the scatter plot
+
 ```{r}
 #| echo: false
 #| output: false
@@ -193,7 +198,6 @@ ggplot(pd, aes(x = x, y = y)) +
 
 Our model-based abundance index for all three subpopulations shows a slow but continuing decline since 2007 that is not apparent in the raw survey data (@fig-combined-index). Like our index, the 2022 stock assessment for SNE/MA Winter Flounder showed a significant drop in spawning stock abundance in the early 2000’s, with 10,005 mt in the year 2000 and 4,648 mt in 2005 [@nefsc_southern_2022]. However, the assessment’s increase in spawning stock biomass from 2005–2013 and the subsequent decrease to \~3,500 mt are not reflected in our index [@nefsc_southern_2022].
 
-
 ### Point Judith Pond
 
 ```{r}
@@ -281,7 +285,6 @@ ggplot(pd, aes(x = x, y = y)) +
 @fig-pj-index provides an overview of Winter Flounder abundance through time in Point Judith Pond [@balouskus_coastal_2024].
 
 Point Judith Pond is the easternmost of the surveyed salt ponds. Point Judith Pond has a surface area of approximately 6.58 km2, a mean depth of 1.8 m, and is connected to Block Island Sound by an artificial breachway [@lee_elusive_1980]. The Saugatucket River flows into the north end of Point Judith Pond, providing the greatest freshwater flow of any of the surveyed ponds. Salinity within the pond ranges from approximately 20 PSU in the northern reaches to full oceanic salinity at the breachway. Due to the developed watershed, shallow depths, and relatively low flushing rates, Point Judith Pond can experience eutrophication and increased growth of macroalgae [@lee_eutrophication_1985; @meng_using_2000]. The pond is home to the largest fishing port in Rhode Island, the Block Island ferry terminal, and numerous marinas.
-
 
 ### Potter Pond
 
@@ -374,7 +377,6 @@ ggplot(pd, aes(x = x, y = y)) +
 
 Potter Pond is situated immediately west of Point Judith Pond and joined to Point Judith by a permanent tidal channel. The surface area of Potter Pond is approximately 1.38 km2. The primary source of freshwater into Potter Pond is from Fresh Pond, which empties into Potter’s northern reaches. This northern section of Potter Pond is also characterized by a glacial kettle hole that reaches over 40 feet in depth, a unique feature among the RI coastal ponds. Potter Pond has no direct outlet to the ocean.
 
-
 ### Ninigret Pond
 
 ```{r}
@@ -462,7 +464,6 @@ ggplot(pd, aes(x = x, y = y)) +
 @fig-np-index provides an overview of Winter Flounder abundance through time in Ninigret Pond.
 
 Ninigret Pond is the largest salt pond in Rhode Island with a surface area of approximately 6.74 km2 and has a permanent, maintained breachway to the ocean. The mean depth throughout Ninigret Pond is approximately 0.4 m, and it is connected to Green Hill Pond to the east by a tidal channel [@lee_elusive_1980]. The watershed of Ninigret Pond includes residential housing, marinas, and the USFWS Ninigret Wildlife Refuge.
-
 
 ## Water Temperature
 
