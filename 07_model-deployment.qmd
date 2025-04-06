@@ -1,5 +1,5 @@
 ---
-title: "Winter Flounder Abundance in Rhode Island Coastal Ponds"
+title: "Winter Flounder *Pseudopleuronectes americanus* Abundance in Rhode Island Coastal Ponds"
 subtitle: "RI DMF Fyke Survey 2023-2024"
 authors:
   - name: Bryan P. Galligan
@@ -16,9 +16,13 @@ fig-height: 4
 ---
 
 ## To do
-- put pond indices on one plot together
-- add language about how to interpret pd and ale plots
-- change temp to ALE and probably remove the scatter plot
+
+-   put pond indices on one plot together
+-   add language about how to interpret pd and ale plots
+-   change temp to ALE and probably remove the scatter plot
+-   add summary stats table at beginning
+-   add tables for rfm performance compared to the Galligan et al baseline
+-   change maps of station effects to compare 1999-2024 with the most recent year
 
 ```{r}
 #| echo: false
@@ -121,7 +125,7 @@ The Southern New England/Mid-Atlantic (SNE/MA) Winter Flounder *Pseudopleuronect
 ```{r}
 #| echo: false
 #| label: fig-combined-index
-#| fig-cap: Fishery-independent abundance index for Rhode Island Winter Flounder in all three coastal ponds. The blue line is a partial dependence plot of Winter Flounder abundance on year.
+#| fig-cap: Fishery-independent abundance index for Rhode Island Winter Flounder in Rhode Island coastal ponds. The blue line is a partial dependence plot of Winter Flounder abundance on year.
 #| fig-pos: htbp!
 
 ## This code chunk calculates an abundance index for all ponds
@@ -198,7 +202,7 @@ ggplot(pd, aes(x = x, y = y)) +
 
 Our model-based abundance index for all three subpopulations shows a slow but continuing decline since 2007 that is not apparent in the raw survey data (@fig-combined-index). Like our index, the 2022 stock assessment for SNE/MA Winter Flounder showed a significant drop in spawning stock abundance in the early 2000’s, with 10,005 mt in the year 2000 and 4,648 mt in 2005 [@nefsc_southern_2022]. However, the assessment’s increase in spawning stock biomass from 2005–2013 and the subsequent decrease to \~3,500 mt are not reflected in our index [@nefsc_southern_2022].
 
-### Point Judith Pond
+### Pond Indices
 
 ```{r}
 #| echo: false
