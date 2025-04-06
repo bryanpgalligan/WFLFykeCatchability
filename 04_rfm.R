@@ -12,6 +12,31 @@ fyke19$station <- as.factor(fyke19$station)
 fyke99$wfl_binary <- as.factor(fyke99$wfl_binary)
 fyke19$wfl_binary <- as.factor(fyke19$wfl_binary)
 
+# A rounding function that always rounds .5 up to the nearest integer. (The normal
+# round() function rounds .5 to the nearest even number.)
+round2 <- function(x, digits = 0) {  # Function to always round 0.5 up
+  posneg <- sign(x)
+  z <- abs(x) * 10^digits
+  z <- z + 0.5
+  z <- trunc(z)
+  z <- z / 10^digits
+  z * posneg
+}
+
+# Function to find SE (standard error) of the mean of a vector
+se.mean <- function(x){
+  
+  # If there are NA in x
+  if(sum(is.na(x)) > 0){
+    
+    # Remove NA
+    x <- na.omit(x)
+  }
+  
+  sd(x)/sqrt(length(x))
+  
+}
+
 
 
 
@@ -709,103 +734,48 @@ station_effects <- select(station_effects, station, n, abundance, occurrence)
 ## PDP for haul winter for all ponds
 
 # Make haul winter an integer
-fyke99_freq_train$haul.winter <- as.integer(fyke99_freq_train$haul.winter)
+fyke99_freq$haul.winter <- as.integer(fyke99_freq$haul.winter)
 
 # Calculate partial dependence
 pd_year <- bind_rows(partialPlot(rf_f99_freq,
   pred.data = fyke99_freq_train, x.var = "haul.winter", n.pt = 26,
   plot = FALSE))
 
-
 ## Uncorrected abundance for all ponds
 mean_abundance <- fyke99 %>%
-  group_by(haul.winter) %>%
+ group_by(haul.winter) %>%
   summarise(mean_freq = mean(wfl_freq, na.rm = TRUE))
 
 
-# ## PDP for haul winter interacting with pond
+# ## Code for bootstrapped pdp predictions for error ribbon
+# 
+# # New predictor object
+# predictor <- Predictor$new(rf_f99_freq, data = fyke99_freq)
+# 
+# # Compute PDP with multiple repetitions (for bootstrapping)
+# pdp_list <- lapply(1:50,
+#   function(i) {
+#     sampled_data <- fyke99_freq[sample(nrow(fyke99_freq), replace = TRUE), ]
+#     predictor_sampled <- Predictor$new(rf_f99_freq, data = sampled_data)
+#     eff <- FeatureEffect$new(predictor_sampled, feature = "haul.winter", method = "pdp")
+#     eff$results
+#   }
+# )
+# 
+# # Combine rows
+# pdp_year <- do.call(rbind, pdp_list)
 # 
 # # Make haul winter an integer
-# fyke99_freq_train$haul.winter <- as.integer(fyke99_freq_train$haul.winter)
+# pdp_year$haul.winter <- as.integer(round2(pdp_year$haul.winter))
 # 
-# # Subset for each pond
-# np <- fyke99_freq_train %>% filter(pond == "NP")
-# pp <- fyke99_freq_train %>% filter(pond == "PP")
-# pj <- fyke99_freq_train %>% filter(pond == "PJ")
-# 
-# # Calculate partial dependence for each pond
-# pd_year_np <- bind_rows(partialPlot(rf_f99_freq,
-#   pred.data = np, x.var = "haul.winter", n.pt = 13,
-#   plot = FALSE))
-# pd_year_pp <- bind_rows(partialPlot(rf_f99_freq,
-#   pred.data = pp, x.var = "haul.winter", n.pt = 26,
-#   plot = FALSE))
-# pd_year_pj <- bind_rows(partialPlot(rf_f99_freq,
-#   pred.data = pj, x.var = "haul.winter", n.pt = 25,
-#   plot = FALSE))
-# 
-# 
-# ## Uncorrected abundance indices
-# 
-# # Make a non-corrected annual abundance index based on mean freq for Ninigret pond
-# abundance_np <- fyke99 %>%
-#   filter(pond == "NP") %>%
+# # Compute mean and error
+# pdp_year_error <- pdp_year %>%
 #   group_by(haul.winter) %>%
-#   summarise(np_mean_freq = mean(wfl_freq, na.rm = TRUE))
-# 
-# # Rename haul winter to year
-# colnames(abundance_np)[colnames(abundance_np) == "haul.winter"] <- "year"
-# 
-# # Non-corrected annual abundance for Potter Pond
-# abundance_pp <- fyke99 %>%
-#   filter(pond == "PP") %>%
-#   group_by(haul.winter) %>%
-#   summarise(pp_mean_freq = mean(wfl_freq, na.rm = TRUE))
-# 
-# # Rename haul winter to year
-# colnames(abundance_pp)[colnames(abundance_pp) == "haul.winter"] <- "year"
-# 
-# # Non-corrected annual abundance for PJ Pond
-# abundance_pj <- fyke99 %>%
-#   filter(pond == "PJ") %>%
-#   group_by(haul.winter) %>%
-#   summarise(pj_mean_freq = mean(wfl_freq, na.rm = TRUE))
-# 
-# # Rename haul winter to year
-# colnames(abundance_pj)[colnames(abundance_pj) == "haul.winter"] <- "year"
-# 
-# # Rename partial dependence columns
-# colnames(pd_year_np) <- c("year", "np_pred_freq")
-# colnames(pd_year_pp) <- c("year", "pp_pred_freq")
-# colnames(pd_year_pj) <- c("year", "pj_pred_freq")
-# 
-# 
-# ## Merge data and split prediction columns
-# 
-# # Potter Pond
-# abundance <- left_join(pd_year_pp, abundance_pp, by = "year")
-# abundance$pp_pred_freq2 <- NA
-# for(i in 1:nrow(abundance)){
-#   if(is.na(abundance$pp_mean_freq[i])){
-#     abundance$pp_pred_freq2[i] <- abundance$pp_pred_freq[i]
-#     abundance$pp_pred_freq[i] <- NA
-#   }
-# }
-# 
-# # Point Judith
-# abundance <- left_join(abundance, abundance_pj, by = "year")
-# abundance <- left_join(abundance, pd_year_pj, by = "year")
-# 
-# # Ninigret Pond
-# abundance <- left_join(abundance, abundance_np, by = "year")
-# abundance <- left_join(abundance, pd_year_np, by = "year")
-# abundance$np_pred_freq2 <- NA
-# for(i in 1:nrow(abundance)){
-#   if(is.na(abundance$np_mean_freq[i])){
-#     abundance$np_pred_freq2[i] <- abundance$np_pred_freq[i]
-#     abundance$np_pred_freq[i] <- NA
-#   }
-# }
+#   summarise(median_abundance = median(.value), 
+#             lower = quantile(.value, 0.1),
+#             upper = quantile(.value, 0.9),
+#             .groups = "drop")
+
 
 
 
@@ -1623,113 +1593,4 @@ ggplot(mean_abundance, aes(x = haul.winter)) +
 ggsave("figures/04_abundance-index.png", width = 4, height = 3, units = "in", dpi = 600)
 
 
-
-# ## ALE - individual ponds
-# 
-# # PJ pond
-# 
-# # Extract rug
-# rug <- select(np, haul.winter)
-# 
-# # Plot data
-# ggplot(abundance_pj, aes(x = year)) +
-#   geom_line(aes(y = pj_mean_freq, color = "Mean")) +
-#   geom_line(aes(y = pj_pred_freq, color = "Corrected"), linewidth = 1) +
-#   geom_rug(data = rug, aes(x = haul.winter), sides = "b", color = "black", size = 0.5) +
-#   xlab("Year") +
-#   ylab("Abundance (no. per haul)") +
-#   ggtitle("Point Judith Pond") +
-#   scale_y_continuous(expand = c(0, 0)) +
-#   theme_pubr() +
-#   #coord_cartesian(xlim = c(1999, 2024), ylim = c(0, 30)) +
-#   theme(#legend.position = "none",
-#         legend.spacing.y = unit(0.1, 'cm'),  # Reduce space between legend entries
-#         legend.key.height = unit(0.4, 'cm'),
-#         plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-#         plot.title = element_text(hjust = 0.5)) +
-#   scale_color_manual(values = c("Mean" = "black", "Corrected" = "blue"), guide = guide_legend(title = NULL))
-#
-#
-# ## PDP - individual ponds
-# 
-# # PJ pond
-# 
-# # Extract rug
-# rug <- fyke99_freq_train %>%
-#   filter(pond == "PJ") %>%
-#   select(haul.winter)
-# 
-# pj_abundance <- ggplot(abundance, aes(x = year)) +
-#   geom_line(aes(y = pj_mean_freq, color = "Mean")) +
-#   geom_line(aes(y = pj_pred_freq, color = "Corrected"), linewidth = 1) +
-#   geom_rug(data = rug, aes(x = haul.winter), sides = "b", size = 0.5) +
-#   xlab("Year") +
-#   ylab("Abundance (no. per haul)") +
-#   ggtitle("Point Judith Pond") +
-#   scale_y_continuous(expand = c(0, 0)) +
-#   theme_pubr() +
-#   coord_cartesian(xlim = c(1999, 2024), ylim = c(0, 30)) +
-#   theme(legend.position = "none",
-#         legend.spacing.y = unit(0.1, 'cm'),  # Reduce space between legend entries
-#         legend.key.height = unit(0.4, 'cm'),
-#         plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-#         plot.title = element_text(hjust = 0.5)) +
-#   scale_color_manual(values = c("Mean" = "black", "Corrected" = "blue"), guide = guide_legend(title = NULL))
-# 
-# # Ninigret Pond
-# 
-# # Extract rug
-# rug <- fyke99_freq_train %>%
-#   filter(pond == "NP") %>%
-#   select(haul.winter)
-# 
-# np_abundance <- ggplot(abundance, aes(x = year)) +
-#   geom_line(aes(y = np_mean_freq, color = "Mean")) +
-#   geom_line(aes(y = np_pred_freq, color = "Corrected"), linewidth = 1) +
-#   geom_line(aes(y = np_pred_freq2, color = "Corrected"), linetype = "dotted", linewidth = 1) +
-#   geom_rug(data = rug, aes(x = haul.winter), sides = "b", size = 0.5) +
-#   xlab("Year") +
-#   ylab("") +
-#   ggtitle("Ninigret Pond") +
-#   scale_y_continuous(expand = c(0, 0)) +
-#   theme_pubr() +
-#   coord_cartesian(xlim = c(1999, 2024), ylim = c(0, 30)) +
-#   theme(legend.position = c(0.85, 0.85),
-#         legend.spacing.y = unit(0.1, 'cm'),  # Reduce space between legend entries
-#         legend.key.height = unit(0.4, 'cm'),
-#         plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-#         plot.title = element_text(hjust = 0.5)) +
-#   scale_color_manual(values = c("Mean" = "black", "Corrected" = "blue"), guide = guide_legend(title = NULL))
-# 
-# # Potter Pond
-# 
-# # Extract rug
-# rug <- fyke99_freq_train %>%
-#   filter(pond == "PP") %>%
-#   select(haul.winter)
-# 
-# pp_abundance <- ggplot(abundance, aes(x = year)) +
-#   geom_line(aes(y = pp_mean_freq, color = "Mean")) +
-#   geom_line(aes(y = pp_pred_freq, color = "Corrected"), linewidth = 1) +
-#   geom_line(aes(y = pp_pred_freq2, color = "Corrected"), linetype = "dotted", linewidth = 1) +
-#   geom_rug(data = rug, aes(x = haul.winter), sides = "b", size = 0.5) +
-#   xlab("Year") +
-#   ylab("") +
-#   ggtitle("Potter Pond") +
-#   scale_y_continuous(expand = c(0, 0)) +
-#   theme_pubr() +
-#   coord_cartesian(xlim = c(1999, 2024), ylim = c(0, 30)) +
-#   theme(legend.position = "none",
-#         legend.spacing.y = unit(0.1, 'cm'),  # Reduce space between legend entries
-#         legend.key.height = unit(0.4, 'cm'),
-#         plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"),
-#         plot.title = element_text(hjust = 0.5)) +
-#   scale_color_manual(values = c("Mean" = "black", "Corrected" = "blue"), guide = guide_legend(title = NULL))
-# 
-# # Combine plots
-# ggarrange(pj_abundance, pp_abundance, np_abundance,
-#   ncol = 3, nrow = 1)
-# 
-# # Save plot
-# ggsave("figures/04_abundance-indices.png", width = 12, height = 3, units = "in", bg = "white", dpi = 600)
 
