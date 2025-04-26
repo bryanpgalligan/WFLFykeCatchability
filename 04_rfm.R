@@ -1573,7 +1573,7 @@ rug$haul.date <- as.numeric(year(rug$haul.date) + (yday(rug$haul.date) - 1) / if
 
 # Plot index
 ggplot(mean_abundance, aes(x = haul.winter)) +
-  geom_line(aes(y = mean_freq, color = "Mean")) +
+  geom_line(aes(y = mean_freq, color = "Mean"), linetype = 2) +
   geom_line(data = pd_year, aes(x = x, y = y, color = "Corrected"), linewidth = 1) +
   geom_rug(data = rug, aes(x = haul.date), inherit.aes = FALSE,
     sides = "b", alpha = 0.1, size = 0.5) +
